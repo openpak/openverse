@@ -3,7 +3,7 @@
 <div class="page-head">
   <p class="eyebrow">Hi {{.Data.Name}}</p>
   <h1>Welcome to OpenVerse</h1>
-  <p class="lede">Share posts and drawings with the OpenPak community, from the web, the app, Wii U and 3DS. Please read the community rules before you start.</p>
+  <p class="lede">Share posts and drawings with the OpenPak community, from the web, the app, Wii U and 3DS. Please read the community rules (<a href="{{.OpenPak}}/terms" rel="noopener">full terms</a>) before you start.</p>
 </div>
 <section class="card welcome-card">
   <ul class="rules">
@@ -13,7 +13,6 @@
     <li>No spam, advertising or pirated content.</li>
     <li>Posts that break these rules are removed, and repeat offenders can lose access.</li>
   </ul>
-  <p class="terms"><a href="{{.OpenPak}}/terms" rel="noopener">Read the full terms</a></p>
   <div class="btn-row">
     <form method="post" action="/welcome"><input type="hidden" name="next" value="{{.Data.Next}}"><button type="submit" class="btn primary">Accept and continue</button></form>
     <form method="get" action="/auth/logout"><button type="submit" class="btn">Not now</button></form>

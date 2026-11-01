@@ -14,7 +14,7 @@
     <a class="post-who" href="/users/{{.Author.ID}}" aria-label="{{.Author.Name}}">{{template "avatar" .Author}}</a>
     <div class="post-meta">
       <p class="post-name"><a href="/users/{{.Author.ID}}">{{.Author.Name}}</a>{{if .Author.Verified}}<span class="vbadge" title="Verified account">{{template "icon" "check"}}<span class="sr">Verified</span></span>{{end}}</p>
-      <p class="post-sub">{{if .Community.ID}}<a href="/communities/{{.Community.ID}}">{{.Community.Name}}</a> · {{end}}<a href="/posts/{{.ID}}"><time datetime="{{iso .Created}}" title="{{datetime .Created}}">{{ago .Created}}</time></a></p>
+      <p class="post-sub">{{if and .Community.ID (not .ParentID)}}<a href="/communities/{{.Community.ID}}">{{.Community.Name}}</a> · {{end}}<a href="/posts/{{.ID}}"><time datetime="{{iso .Created}}" title="{{datetime .Created}}">{{ago .Created}}</time></a></p>
     </div>
   </div>
   {{if .Removed}}
@@ -36,8 +36,10 @@
       {{else}}
       <a class="act yeah" href="/auth/login?next=/posts/{{.ID}}" aria-label="Sign in to give a Yeah">{{template "icon" "heart"}}<span>{{.Yeahs}}</span></a>
       {{end}}
+      {{if not .ParentID}}
       <a class="act" href="/posts/{{.ID}}#replies" aria-label="Replies: {{.Replies}}">{{template "icon" "chat"}}<span>{{.Replies}}</span></a>
       <button type="button" class="act js-only" data-share="/posts/{{.ID}}" aria-label="Copy link to this post">{{template "icon" "share"}}<span>Share</span></button>
+      {{end}}
     </div>
   {{end}}
 </article>{{end}}

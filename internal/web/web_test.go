@@ -295,3 +295,25 @@ func TestWelcomeShowsNoNavigation(t *testing.T) {
 		}
 	}
 }
+
+func TestWelcomeTermsLinkIsInline(t *testing.T) {
+	s := newSite(t)
+	c := signIn(t, s, "&as=new")
+	page := do(t, s, "GET", "/welcome?next=/feed", nil, c).Body.String()
+	if strings.Contains(page, `class="terms"`) || !strings.Contains(page, "(<a href=\"https://openpak.org/terms\" rel=\"noopener\">full terms</a>) before you start") {
+		t.Error("terms link must sit inside the intro sentence")
+	}
+}
+
+func TestRepliesCarryOnlyYeah(t *testing.T) {
+	s := newSite(t)
+	c := signIn(t, s, "")
+	body := do(t, s, "GET", "/posts/p101", nil, c).Body.String()
+	replies := body[strings.Index(body, `class="stack replies"`):strings.Index(body, `class="card composer reply-box"`)]
+	if strings.Contains(replies, "data-share") || strings.Contains(replies, "#replies") || strings.Contains(replies, "/communities/") {
+		t.Error("reply cards show only the author, time and Yeah")
+	}
+	if !strings.Contains(replies, "act yeah") {
+		t.Error("replies keep Yeah")
+	}
+}
