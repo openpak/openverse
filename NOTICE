@@ -1,0 +1,19 @@
+OpenVerse
+Copyright (C) OpenPak contributors. Licensed under the GNU Affero General Public License v3.0 only (see LICENSE).
+
+OpenVerse is OpenPak's own web application. It does not contain Juxtaposition's web views, styles or
+templates. It does depend, at run time, on the miiverse-api of OpenPak's fork of Juxtaposition for
+storage and for the Wii U and 3DS console protocol (see docs/architecture.md):
+
+  Juxtaposition (apps/miiverse-api, apps/juxtaposition-ui)
+  Copyright (C) Pretendo Network contributors
+  https://github.com/PretendoNetwork/juxtaposition
+  Licensed under the GNU Affero General Public License v3.0 only.
+
+Console support in OpenVerse's later phases is written from the public Miiverse (olv) protocol
+documentation, from captures, and with Juxtaposition as a behavioural reference. Where code is ported,
+the file header names the upstream path and commit.
+
+Typeface: M PLUS Rounded 1c, SIL Open Font License 1.1 (internal/web/static/fonts/OFL.txt).
+internal/web/static/base.css is generated from openpak.org's stylesheet.
+Mii and Miiverse are trademarks of Nintendo. OpenVerse is not affiliated with or endorsed by Nintendo.

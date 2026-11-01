@@ -1,0 +1,43 @@
+{{define "icon"}}<svg class="ico" aria-hidden="true"><use href="#i-{{.}}"/></svg>{{end}}
+
+{{define "avatar"}}<span class="av"><span class="av-i" aria-hidden="true">{{initial .Name}}</span>{{if .Avatar}}<img src="{{.Avatar}}" alt="" loading="lazy" width="48" height="48">{{end}}</span>{{end}}
+
+{{define "empty"}}<div class="card empty-state">{{template "icon" .Icon}}<h2>{{.Title}}</h2><p>{{.Text}}</p>{{if .Href}}<a class="btn primary" href="{{.Href}}">{{.Label}}</a>{{end}}</div>{{end}}
+
+{{define "pager"}}{{if or .Prev .Next}}<nav class="pager" aria-label="Pages">
+  {{if .Prev}}<a class="btn" href="{{.Prev}}">Newer</a>{{else}}<span></span>{{end}}<span>Page {{.Page}}</span>{{if .Next}}<a class="btn" href="{{.Next}}">Older</a>{{else}}<span></span>{{end}}
+</nav>{{end}}{{end}}
+
+{{/* One post card, everywhere: feed, community, profile, thread. */}}
+{{define "post"}}<article class="post card{{if .Removed}} removed{{end}}{{if .Official}} official{{end}}" id="post-{{.ID}}">
+  <div class="post-head">
+    <a class="post-who" href="/users/{{.Author.ID}}" aria-label="{{.Author.Name}}">{{template "avatar" .Author}}</a>
+    <div class="post-meta">
+      <p class="post-name"><a href="/users/{{.Author.ID}}">{{.Author.Name}}</a>{{if .Author.Verified}}<span class="vbadge" title="Verified account">{{template "icon" "check"}}<span class="sr">Verified</span></span>{{end}}</p>
+      <p class="post-sub">{{if .Community.ID}}<a href="/communities/{{.Community.ID}}">{{.Community.Name}}</a> · {{end}}<a href="/posts/{{.ID}}"><time datetime="{{iso .Created}}" title="{{datetime .Created}}">{{ago .Created}}</time></a></p>
+    </div>
+  </div>
+  {{if .Removed}}
+    <p class="post-removed">This post was removed.</p>
+  {{else}}
+    {{if .Spoiler}}<details class="spoiler"><summary class="btn small">Spoiler: show post</summary>{{end}}
+    {{if .Body}}<p class="post-body">{{linkify .Body}}</p>{{end}}
+    {{if .Painting}}<a class="post-art" href="/posts/{{.ID}}"><img class="painting" src="{{.Painting}}" alt="Drawing by {{.Author.Name}}" width="320" height="120" loading="lazy"></a>{{end}}
+    {{if .Image}}<a class="post-art" href="/posts/{{.ID}}"><img src="{{.Image}}" alt="Screenshot posted by {{.Author.Name}}" loading="lazy"></a>{{end}}
+    {{if .Topic}}<p class="post-topic">{{.Topic}}</p>{{end}}
+    {{if .Spoiler}}</details>{{end}}
+    <div class="post-actions">
+      {{if .Signed}}
+      <form method="post" action="/posts/{{.ID}}/yeah" class="act-form" data-yeah>
+        <input type="hidden" name="add" value="{{if .Yeahed}}0{{else}}1{{end}}">
+        <input type="hidden" name="back" value="{{.Back}}#post-{{.ID}}">
+        <button type="submit" class="act yeah" aria-pressed="{{if .Yeahed}}true{{else}}false{{end}}" aria-label="Yeah! {{.Yeahs}} so far">{{template "icon" "heart"}}<span data-count>{{.Yeahs}}</span></button>
+      </form>
+      {{else}}
+      <a class="act yeah" href="/auth/login?next=/posts/{{.ID}}" aria-label="Sign in to give a Yeah">{{template "icon" "heart"}}<span>{{.Yeahs}}</span></a>
+      {{end}}
+      <a class="act" href="/posts/{{.ID}}#replies" aria-label="Replies: {{.Replies}}">{{template "icon" "chat"}}<span>{{.Replies}}</span></a>
+      <button type="button" class="act js-only" data-share="/posts/{{.ID}}" aria-label="Copy link to this post">{{template "icon" "share"}}<span>Share</span></button>
+    </div>
+  {{end}}
+</article>{{end}}

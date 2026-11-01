@@ -1,0 +1,20 @@
+{{define "page"}}{{template "head" .}}
+<div class="page-head">
+  <p class="eyebrow">{{.Data.Total}} {{plural .Data.Total "community" "communities"}}</p>
+  <h1>Communities</h1>
+  <p class="lede">Every game has a place to post. Pick one to see what people are sharing, follow it, and add your own.</p>
+</div>
+{{if .Data.Welcome}}<div class="card invite">
+  <div><h2>Join the conversation</h2><p>Sign in with your OpenPak account to post, give Yeahs and follow games. No separate sign-up.</p></div>
+  <a class="btn primary" href="/auth/login?next={{.Next}}">Sign in</a>
+</div>{{end}}
+{{if .Data.Communities}}
+<ul class="tiles com-grid">
+{{range .Data.Communities}}<li><a class="card com-tile" href="/communities/{{.ID}}">
+  <span class="com-icon">{{if .Icon}}<img src="{{.Icon}}" alt="" loading="lazy" width="64" height="64">{{else}}<span aria-hidden="true">{{initial .Name}}</span>{{end}}</span>
+  <span class="com-name">{{.Name}}</span>
+  <span class="com-sub">{{count .Followers}} {{plural .Followers "follower" "followers"}}</span>
+</a></li>
+{{end}}</ul>
+{{else}}{{template "empty" (dict "Icon" "grid" "Title" "No communities yet" "Text" "Communities appear here as soon as a game opens one." )}}{{end}}
+{{template "foot" .}}{{end}}

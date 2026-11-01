@@ -1,0 +1,58 @@
+{{define "page"}}{{template "head" .}}
+{{if .Data.Community}}
+<div class="page-head">
+  <p class="eyebrow"><a href="/communities/{{.Data.Community.ID}}">{{.Data.Community.Name}}</a></p>
+  <h1>New post</h1>
+  <p class="lede">Write something, or draw it. Posts appear for everyone in {{.Data.Community.Name}}, on the web and on Wii U and 3DS.</p>
+</div>
+{{if .Data.ReadOnly}}
+<div class="card empty-state">{{template "icon" "lock"}}<h2>Posting is turned off for this account</h2><p>You can read everything in OpenVerse. A parent or guardian can change this in OpenPak parental controls.</p><a class="btn" href="/communities/{{.Data.Community.ID}}">Back to {{.Data.Community.Name}}</a></div>
+{{else}}
+<form method="post" action="/new" class="card composer" data-composer>
+  <input type="hidden" name="community" value="{{.Data.Community.ID}}">
+  <input type="hidden" name="kind" value="text" data-kind>
+  <input type="hidden" name="painting" value="" data-painting>
+  {{if .Data.Error}}<p class="notice bad" role="alert">{{.Data.Error}}</p>{{end}}
+  <div class="tabs" role="tablist" aria-label="Kind of post" hidden data-tabs>
+    <button type="button" role="tab" aria-selected="true" data-tab="text">{{template "icon" "chat"}}Text</button>
+    <button type="button" role="tab" aria-selected="false" data-tab="painting">{{template "icon" "pen"}}Drawing</button>
+  </div>
+  <label class="sr" for="body">Your post</label>
+  <textarea id="body" name="body" maxlength="{{.Data.Max}}" rows="5" placeholder="What is on your mind?" data-body>{{.Data.Body}}</textarea>
+  <div class="paint" data-pane="painting" hidden>
+    <p class="muted">Draw with your mouse, finger or pen. The picture is 320 by 120 and black and white, like on the console.</p>
+    <canvas class="pad" width="320" height="120" data-canvas aria-label="Drawing pad"></canvas>
+    <div class="tools" role="group" aria-label="Drawing tools">
+      <button type="button" class="btn small" data-tool="small" aria-pressed="true">{{template "icon" "pen"}}Fine</button>
+      <button type="button" class="btn small" data-tool="large" aria-pressed="false">{{template "icon" "pen"}}Thick</button>
+      <button type="button" class="btn small" data-tool="eraser" aria-pressed="false">{{template "icon" "eraser"}}Eraser</button>
+      <button type="button" class="btn small" data-action="undo">{{template "icon" "undo"}}Undo</button>
+      <button type="button" class="btn small" data-action="clear">{{template "icon" "trash"}}Clear</button>
+    </div>
+    <p class="notice bad" role="alert" data-empty hidden>Draw something first, or switch back to Text.</p>
+  </div>
+  <div class="composer-foot">
+    <label class="check"><input type="checkbox" name="spoiler" value="1" {{if .Data.Spoiler}}checked{{end}}> Contains spoilers</label>
+    <span class="muted counter" data-counter aria-live="polite">{{.Data.Max}}</span>
+    <button type="submit" class="btn primary">Post</button>
+  </div>
+</form>
+{{end}}
+{{else}}
+<div class="page-head">
+  <h1>New post</h1>
+  <p class="lede">Where do you want to post? Pick a community.</p>
+</div>
+{{if .Data.ReadOnly}}
+<div class="card empty-state">{{template "icon" "lock"}}<h2>Posting is turned off for this account</h2><p>You can read everything in OpenVerse. A parent or guardian can change this in OpenPak parental controls.</p></div>
+{{else if .Data.Choices}}
+<ul class="tiles com-grid">
+{{range .Data.Choices}}<li><a class="card com-tile" href="/new?community={{.ID}}">
+  <span class="com-icon">{{if .Icon}}<img src="{{.Icon}}" alt="" loading="lazy" width="64" height="64">{{else}}<span aria-hidden="true">{{initial .Name}}</span>{{end}}</span>
+  <span class="com-name">{{.Name}}</span>
+  <span class="com-sub">Post here</span>
+</a></li>
+{{end}}</ul>
+{{else}}{{template "empty" (dict "Icon" "grid" "Title" "No communities yet" "Text" "There is nowhere to post yet. Communities appear as soon as a game opens one.")}}{{end}}
+{{end}}
+{{template "foot" .}}{{end}}

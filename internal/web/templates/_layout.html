@@ -1,0 +1,125 @@
+{{define "head"}}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#e9ecf0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#24272d" media="(prefers-color-scheme: dark)">
+<meta name="description" content="{{.Desc}}">
+<meta property="og:site_name" content="OpenVerse">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{.Title}} · OpenVerse">
+<meta property="og:description" content="{{.Desc}}">
+<title>{{.Title}} · OpenVerse</title>
+<link rel="icon" href="/static/openverse.svg" type="image/svg+xml">
+<link rel="icon" href="/static/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+<link rel="stylesheet" href="/static/base.css?v={{.Asset}}">
+<link rel="stylesheet" href="/static/openverse.css?v={{.Asset}}">
+<script src="/static/openverse.js?v={{.Asset}}" defer></script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c2.2.6 3.5 2.4 3.5 5.2"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7.5 2 7.5H4S6 15 6 9z"/><path d="M10 20a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.5S3 15 3 8.8A4.8 4.8 0 0 1 12 6.4a4.8 4.8 0 0 1 9 2.4C21 15 12 20.5 12 20.5z"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12.5 5 5L20 6.5"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4m0 0h11l-2 4 2 4H5"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19z"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-9.5h.01"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
+  <symbol id="i-eraser" viewBox="0 0 24 24"><path d="m7 21-4-4a2 2 0 0 1 0-2.8l10-10a2 2 0 0 1 2.8 0l5 5a2 2 0 0 1 0 2.8L12 21zM8 11l7 7"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></symbol>
+</svg>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap">
+    <a href="/" class="brand"><img src="/static/openverse.svg" alt="" width="32" height="32">OpenVerse</a>
+    <nav aria-label="OpenVerse" class="navlinks">
+      {{if .Me}}<a href="/feed" {{if active .Path "/feed"}}aria-current="page"{{end}}>Feed</a>{{end}}
+      <a href="/communities" {{if or (active .Path "/communities") (and (eq .Path "/") (not .Me))}}aria-current="page"{{end}}>Communities</a>
+      {{if .Me}}<a href="/activity" {{if active .Path "/activity"}}aria-current="page"{{end}}>Activity</a>
+      <a href="/notifications" {{if active .Path "/notifications"}}aria-current="page"{{end}}>Notifications<span class="count" data-unread {{if not .Unread}}hidden{{end}}>{{if gt .Unread 99}}99+{{else}}{{.Unread}}{{end}}</span></a>{{end}}
+      <a href="/about" {{if active .Path "/about"}}aria-current="page"{{end}}>About</a>
+    </nav>
+    <div class="ml-auto">
+      {{if .Me}}
+        <a class="btn primary" href="/new">{{template "icon" "plus"}}<span>New post</span></a>
+        <details class="acct" data-menu>
+          <summary class="avatar-btn" aria-label="Account menu: {{.Me.Name}}">{{.Me.Initial}}</summary>
+          <div class="acct-menu">
+            <p class="acct-name">{{.Me.Name}}</p>
+            <a href="/me">{{template "icon" "user"}}Your profile</a>
+            <a href="/settings">{{template "icon" "gear"}}Settings</a>
+            <a href="/auth/logout">{{template "icon" "logout"}}Sign out</a>
+          </div>
+        </details>
+      {{else if .SignIn}}
+        <a class="btn primary" href="/auth/login?next={{.Next}}">Sign in</a>
+      {{end}}
+    </div>
+  </div>
+</header>
+<main id="main" class="wrap pt-6">
+{{end}}
+
+{{define "foot"}}
+</main>
+<footer class="site-foot">
+  <div class="wrap">
+    <div>
+      <a href="/" class="brand"><img src="/static/openverse.svg" alt="" width="28" height="28">OpenVerse</a>
+      <p class="muted" style="max-width:24rem;font-size:.9rem;margin-top:.75rem">OpenVerse is OpenPak's community space: posts, drawings and conversations about the games you play.</p>
+    </div>
+    <nav aria-labelledby="foot-net"><h2 id="foot-net">OpenPak</h2><ul>
+      <li><a href="{{.OpenPak}}/">Home</a></li>
+      <li><a href="{{.OpenPak}}/titles">Titles</a></li>
+      <li><a href="{{.OpenPak}}/features">Features</a></li>
+      <li><a href="{{.OpenPak}}/status">Status</a></li>
+    </ul></nav>
+    <nav aria-labelledby="foot-ov"><h2 id="foot-ov">OpenVerse</h2><ul>
+      <li><a href="/communities">Communities</a></li>
+      <li><a href="/about">About</a></li>
+    </ul></nav>
+    <nav aria-labelledby="foot-proj"><h2 id="foot-proj">Project</h2><ul>
+      <li><a href="https://github.com/openpak/openverse" rel="noopener">Source</a></li>
+      <li><a href="{{.OpenPak}}/help">Help</a></li>
+      <li><a href="mailto:{{.Contact}}">Contact</a></li>
+    </ul></nav>
+    <nav aria-labelledby="foot-legal"><h2 id="foot-legal">Legal</h2><ul>
+      <li><a href="{{.OpenPak}}/terms">Terms</a></li>
+      <li><a href="{{.OpenPak}}/privacy">Privacy</a></li>
+      <li><a href="{{.OpenPak}}/legal">Trademarks and takedowns</a></li>
+    </ul></nav>
+    <div class="foot-bottom"><span><a href="{{.OpenPak}}/">Part of the OpenPak network</a> · © OpenPak · AGPL-3.0 · Console support builds on Juxtaposition by Pretendo Network. Miiverse is a trademark of Nintendo.</span></div>
+  </div>
+</footer>
+<nav class="tabbar{{if not .Me}} n3{{end}}" aria-label="OpenVerse">
+  {{if .Me}}
+  <a href="/feed" {{if active .Path "/feed"}}aria-current="page"{{end}}>{{template "icon" "home"}}Feed</a>
+  <a href="/communities" {{if active .Path "/communities"}}aria-current="page"{{end}}>{{template "icon" "grid"}}Communities</a>
+  <a href="/activity" {{if active .Path "/activity"}}aria-current="page"{{end}}>{{template "icon" "pulse"}}Activity</a>
+  <a href="/notifications" class="tab-bell" {{if active .Path "/notifications"}}aria-current="page"{{end}}>{{template "icon" "bell"}}<span class="count" data-unread {{if not .Unread}}hidden{{end}}>{{if gt .Unread 99}}99+{{else}}{{.Unread}}{{end}}</span>Alerts</a>
+  <a href="/me" {{if or (active .Path "/users") (active .Path "/me") (active .Path "/settings")}}aria-current="page"{{end}}>{{template "icon" "user"}}You</a>
+  {{else}}
+  <a href="/communities" {{if or (active .Path "/communities") (eq .Path "/")}}aria-current="page"{{end}}>{{template "icon" "grid"}}Communities</a>
+  <a href="/about" {{if active .Path "/about"}}aria-current="page"{{end}}>{{template "icon" "info"}}About</a>
+  {{if .SignIn}}<a href="/auth/login?next={{.Next}}">{{template "icon" "user"}}Sign in</a>{{end}}
+  {{end}}
+</nav>
+</body>
+</html>
+{{end}}

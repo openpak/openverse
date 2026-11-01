@@ -1,0 +1,52 @@
+{{define "page"}}{{template "head" .}}
+<p class="crumb"><a href="/communities/{{.Data.Post.Community.ID}}">{{template "icon" "arrow"}}<span>Back to {{.Data.Post.Community.Name}}</span></a></p>
+<div class="thread">
+{{template "post" .Data.Post}}
+{{if .Data.Post.Mine}}
+<div class="post-tools"><form method="post" action="/posts/{{.Data.Post.ID}}/delete" data-confirm="Delete this post? This cannot be undone."><button type="submit" class="btn small danger">{{template "icon" "trash"}}Delete post</button></form></div>
+{{else if and .Data.Post.Signed (not .Data.Post.Removed)}}
+<details class="post-tools report">
+  <summary class="btn small">{{template "icon" "flag"}}Report this post</summary>
+  <form method="post" action="/posts/{{.Data.Post.ID}}/report" class="form-stack card report-form">
+    <label for="reason">Why are you reporting it?</label>
+    <select id="reason" name="reason" class="field">
+      <option value="11">It is not nice</option><option value="12">Inappropriate for the community</option><option value="13">Spam or advertising</option>
+      <option value="15">Piracy</option><option value="20">Shares personal information</option><option value="23">Impersonation</option><option value="9">Something else</option>
+    </select>
+    <label for="message">Anything we should know? (optional)</label>
+    <textarea id="message" name="message" class="field" maxlength="280" rows="3"></textarea>
+    <button type="submit" class="btn primary">Send report</button>
+  </form>
+</details>
+{{end}}
+<section id="replies" aria-labelledby="replies-h">
+  <div class="section-row">
+    <h2 id="replies-h">{{.Data.Post.Replies}} {{plural .Data.Post.Replies "reply" "replies"}}</h2>
+    {{if gt .Data.Post.Replies 1}}<nav class="seg small" aria-label="Order replies">
+      <a href="/posts/{{.Data.Post.ID}}#replies" {{if not .Data.Newest}}aria-current="page"{{end}}>Oldest first</a>
+      <a href="/posts/{{.Data.Post.ID}}?sort=newest#replies" {{if .Data.Newest}}aria-current="page"{{end}}>Newest first</a>
+    </nav>{{end}}
+  </div>
+  <div class="stack replies">
+  {{range .Data.Replies}}{{template "post" .}}{{else}}
+  <p class="muted no-replies">No replies yet.</p>
+  {{end}}
+  </div>
+  {{if .Data.CanReply}}
+  <form method="post" action="/posts/{{.Data.Post.ID}}/reply" class="card composer reply-box" id="reply" data-composer>
+    <input type="hidden" name="kind" value="text" data-kind>
+    <input type="hidden" name="painting" value="" data-painting>
+    {{if .Data.Error}}<p class="notice bad" role="alert">{{.Data.Error}}</p>{{end}}
+    <label for="reply-body" class="reply-label">Reply to {{.Data.Post.Author.Name}}</label>
+    <textarea id="reply-body" name="body" maxlength="{{.Data.Max}}" rows="3" placeholder="Write a reply" data-body>{{.Data.ReplyDraft}}</textarea>
+    <div class="composer-foot">
+      <span class="muted counter" data-counter aria-live="polite">{{.Data.Max}}</span>
+      <button type="submit" class="btn primary">Reply</button>
+    </div>
+  </form>
+  {{else if not .Data.Post.Signed}}
+  <div class="card invite"><div><h2>Want to reply?</h2><p>Sign in with your OpenPak account to join the conversation.</p></div><a class="btn primary" href="/auth/login?next={{.Next}}">Sign in</a></div>
+  {{end}}
+</section>
+</div>
+{{template "foot" .}}{{end}}

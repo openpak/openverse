@@ -1,0 +1,39 @@
+{{define "page"}}{{template "head" .}}
+<div class="page-head">
+  <h1>Settings</h1>
+  <p class="lede">You are signed in as <b>{{.Data.Name}}</b> with your OpenPak account. Your name comes from there.</p>
+</div>
+{{if .Data.Saved}}<p class="notice ok" role="status">Saved.</p>{{end}}
+<form method="post" action="/settings" class="settings">
+  <section class="card" id="activity">
+    <h2>Game activity</h2>
+    <p class="muted">Share moments from the games you play, like badges earned, as automatic posts on the Activity page. Off unless you turn it on.</p>
+    <label class="switch"><input type="checkbox" name="activity" value="1" {{if .Data.ActivityOn}}checked{{end}}><span>Share my game activity</span></label>
+    {{if .Data.ActivityCategories}}<fieldset><legend>What to share</legend>
+    {{range .Data.ActivityCategories}}<label class="switch"><input type="checkbox" name="category" value="{{.ID}}" {{if .Enabled}}checked{{end}}><span>{{catName .ID}}</span></label>
+    {{end}}</fieldset>{{end}}
+  </section>
+  <section class="card">
+    <h2>Privacy</h2>
+    <fieldset><legend>Who can see your profile</legend>
+      <label class="switch"><input type="radio" name="visibility" value="public" {{if ne .Data.ProfileVisibility "users_only"}}checked{{end}}><span>Everyone, including people who are not signed in</span></label>
+      <label class="switch"><input type="radio" name="visibility" value="users_only" {{if eq .Data.ProfileVisibility "users_only"}}checked{{end}}><span>Only people signed in to OpenVerse</span></label>
+    </fieldset>
+    <label class="switch"><input type="checkbox" name="country" value="1" {{if .Data.ShowCountry}}checked{{end}}><span>Show my country on my profile</span></label>
+    <label for="comment">About me</label>
+    <textarea id="comment" name="comment" class="field" maxlength="200" rows="3" placeholder="A line for your profile (optional)">{{.Data.Comment}}</textarea>
+  </section>
+  <section class="card">
+    <h2>Notifications</h2>
+    <label class="switch"><input type="checkbox" name="notify_yeah" value="1" {{if .Data.NotifyYeah}}checked{{end}}><span>When someone gives my post a Yeah</span></label>
+    <label class="switch"><input type="checkbox" name="notify_reply" value="1" {{if .Data.NotifyReply}}checked{{end}}><span>When someone replies to my post</span></label>
+    <label class="switch"><input type="checkbox" name="notify_follow" value="1" {{if .Data.NotifyFollow}}checked{{end}}><span>When someone follows me</span></label>
+  </section>
+  <div class="btn-row"><button type="submit" class="btn primary">Save settings</button></div>
+</form>
+<section class="card account-card">
+  <h2>Account</h2>
+  <p class="muted">OpenVerse uses your OpenPak account. Manage your password and linked consoles on openpak.org. Signing out here keeps you signed in there.</p>
+  <div class="btn-row"><a class="btn" href="{{.OpenPak}}/account">{{template "icon" "user"}}Manage OpenPak account</a><a class="btn" href="/auth/logout">{{template "icon" "logout"}}Sign out of OpenVerse</a></div>
+</section>
+{{template "foot" .}}{{end}}
