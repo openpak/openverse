@@ -284,3 +284,14 @@ func TestCDNProxyOnlyServesMediaPrefixes(t *testing.T) {
 		t.Errorf("traversal: %d", w.Code)
 	}
 }
+
+func TestWelcomeShowsNoNavigation(t *testing.T) {
+	s := newSite(t)
+	c := signIn(t, s, "&as=new")
+	page := do(t, s, "GET", "/welcome?next=/feed", nil, c).Body.String()
+	for _, no := range []string{`href="/feed"`, `class="navlinks"`, `class="tabbar"`, `>New post<`} {
+		if strings.Contains(page, no) {
+			t.Errorf("welcome should not show %q", no)
+		}
+	}
+}

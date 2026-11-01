@@ -163,6 +163,7 @@ type view struct {
 	SignIn   bool
 	Me       *Me
 	Unread   int
+	Onboard  bool   // signed in but the rules are not accepted yet: the shell shows no navigation
 	Next     string // where Sign in returns to
 	Data     any
 	Flash    string
@@ -175,6 +176,7 @@ func (s *Site) base(r *http.Request, title string, data any) view {
 		Next: r.URL.RequestURI()}
 	if m, ok := s.me(r); ok {
 		v.Me = &m
+		v.Onboard = !m.Rules
 		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 		defer cancel()
 		if n, err := s.store.UnreadNotifications(ctx, m.ID); err == nil {

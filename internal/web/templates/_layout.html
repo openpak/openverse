@@ -48,16 +48,16 @@
 <header class="top">
   <div class="wrap">
     <a href="/" class="brand"><img src="/static/openverse.svg" alt="" width="32" height="32">OpenVerse</a>
-    <nav aria-label="OpenVerse" class="navlinks">
+    {{if not .Onboard}}<nav aria-label="OpenVerse" class="navlinks">
       {{if .Me}}<a href="/feed" {{if active .Path "/feed"}}aria-current="page"{{end}}>Feed</a>{{end}}
       <a href="/communities" {{if or (active .Path "/communities") (and (eq .Path "/") (not .Me))}}aria-current="page"{{end}}>Communities</a>
       {{if .Me}}<a href="/activity" {{if active .Path "/activity"}}aria-current="page"{{end}}>Activity</a>
       <a href="/notifications" {{if active .Path "/notifications"}}aria-current="page"{{end}}>Notifications<span class="count" data-unread {{if not .Unread}}hidden{{end}}>{{if gt .Unread 99}}99+{{else}}{{.Unread}}{{end}}</span></a>{{end}}
       <a href="/about" {{if active .Path "/about"}}aria-current="page"{{end}}>About</a>
-    </nav>
+    </nav>{{end}}
     <div class="ml-auto">
       {{if .Me}}
-        <a class="btn primary" href="/new">{{template "icon" "plus"}}<span>New post</span></a>
+        {{if not .Onboard}}<a class="btn primary" href="/new">{{template "icon" "plus"}}<span>New post</span></a>{{end}}
         <details class="acct" data-menu>
           <summary class="avatar-btn" aria-label="Account menu: {{.Me.Name}}">{{.Me.Initial}}</summary>
           <div class="acct-menu">
@@ -107,7 +107,7 @@
     <div class="foot-bottom"><span><a href="{{.OpenPak}}/">Part of the OpenPak network</a> · © OpenPak · AGPL-3.0 · Console support builds on Juxtaposition by Pretendo Network. Miiverse is a trademark of Nintendo.</span></div>
   </div>
 </footer>
-<nav class="tabbar{{if not .Me}} n3{{end}}" aria-label="OpenVerse">
+{{if not .Onboard}}<nav class="tabbar{{if not .Me}} n3{{end}}" aria-label="OpenVerse">
   {{if .Me}}
   <a href="/feed" {{if active .Path "/feed"}}aria-current="page"{{end}}>{{template "icon" "home"}}Feed</a>
   <a href="/communities" {{if active .Path "/communities"}}aria-current="page"{{end}}>{{template "icon" "grid"}}Communities</a>
@@ -119,7 +119,7 @@
   <a href="/about" {{if active .Path "/about"}}aria-current="page"{{end}}>{{template "icon" "info"}}About</a>
   {{if .SignIn}}<a href="/auth/login?next={{.Next}}">{{template "icon" "user"}}Sign in</a>{{end}}
   {{end}}
-</nav>
+</nav>{{end}}
 </body>
 </html>
 {{end}}
