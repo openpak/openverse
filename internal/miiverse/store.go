@@ -326,7 +326,7 @@ func (c *Client) Profile(ctx context.Context, viewer, id string) (store.Profile,
 // UserPosts: GET /users/{id}/posts.
 func (c *Client) UserPosts(ctx context.Context, viewer, id string, p store.Page) ([]store.Post, error) {
 	var out wireList[wirePost]
-	if err := c.do(ctx, http.MethodGet, "/users/"+url.PathEscape(id)+"/posts"+q(p, url.Values{"type": {"posts"}}), viewer, nil, &out); err != nil {
+	if err := c.do(ctx, http.MethodGet, "/users/"+url.PathEscape(id)+"/posts"+q(p, url.Values{"type": {"post"}}), viewer, nil, &out); err != nil {
 		return nil, err
 	}
 	return posts(out.Items, viewer), nil
