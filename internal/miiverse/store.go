@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 	"time"
 
@@ -112,6 +113,17 @@ func (c *Client) Communities(ctx context.Context, p store.Page) ([]store.Communi
 		}
 		list = append(list, com)
 	}
+	// Busy games first, then the rest A to Z (the API's own order is arbitrary).
+	sort.SliceStable(list, func(i, j int) bool {
+		a, b := list[i], list[j]
+		if a.Posts != b.Posts {
+			return a.Posts > b.Posts
+		}
+		if a.Followers != b.Followers {
+			return a.Followers > b.Followers
+		}
+		return strings.ToLower(a.Name) < strings.ToLower(b.Name)
+	})
 	return list, total, nil
 }
 

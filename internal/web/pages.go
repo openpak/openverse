@@ -569,6 +569,9 @@ func (s *Site) profile(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
+	if pr.Self && me != nil && me.Name != "" {
+		pr.Name = me.Name // the console name is cut to ten characters; the account's own name is whole
+	}
 	page := pageParam(r)
 	ro := s.readOnly(r, me)
 	base := "/users/" + url.PathEscape(id) + tabPath(tab)

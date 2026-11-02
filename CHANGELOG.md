@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.2 — 2026-11-02
+
+- Communities: busiest first, then A to Z; a quiet game says so instead of "0 followers · 0 posts". Your own profile shows your whole account name.
+
 ## v0.1.1 — 2026-11-02
 
 - Profile posts asked the API for type "posts" (it wants "post"); fixed. Phone layout shows two community tiles per row.

@@ -575,6 +575,9 @@ func catName(tr i18n.T, id string) string {
 
 // commSub is the line under a community tile: followers, and posts when the count is known.
 func commSub(tr i18n.T, c store.Community) string {
+	if c.Posts == 0 && c.Followers == 0 {
+		return tr.Str("n.quiet")
+	}
 	if c.Posts >= 0 {
 		return tr.N("n.followers", c.Followers) + " · " + tr.N("n.posts", c.Posts)
 	}
