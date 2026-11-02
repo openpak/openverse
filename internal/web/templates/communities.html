@@ -1,20 +1,16 @@
 {{define "page"}}{{template "head" .}}
 <div class="page-head">
-  <p class="eyebrow">{{.Data.Total}} {{plural .Data.Total "community" "communities"}}</p>
-  <h1>Communities</h1>
-  <p class="lede">Every game has a place to post. Pick one to see what people are sharing, follow it, and add your own.</p>
+  <p class="eyebrow">{{tn "n.communities" .Data.Total}}</p>
+  <h1>{{t "communities.title"}}</h1>
+  <p class="lede">{{t "communities.lede"}}</p>
 </div>
 {{if .Data.Welcome}}<div class="card invite">
-  <div><h2>Join the conversation</h2><p>Sign in with your OpenPak account to post, give Yeahs and follow games. No separate sign-up.</p></div>
-  <a class="btn primary" href="/auth/login?next={{.Next}}">Sign in</a>
+  <div><h2>{{t "invite.h"}}</h2><p>{{t "invite.p"}}</p></div>
+  <a class="btn primary" href="/auth/login?next={{.Next}}">{{t "nav.signin"}}</a>
 </div>{{end}}
 {{if .Data.Communities}}
 <ul class="tiles com-grid">
-{{range .Data.Communities}}<li><a class="card com-tile" href="/communities/{{.ID}}">
-  <span class="com-icon">{{if .Icon}}<img src="{{.Icon}}" alt="" loading="lazy" width="64" height="64">{{else}}<span aria-hidden="true">{{initial .Name}}</span>{{end}}</span>
-  <span class="com-name">{{.Name}}</span>
-  <span class="com-sub">{{count .Followers}} {{plural .Followers "follower" "followers"}}</span>
-</a></li>
+{{range .Data.Communities}}<li>{{template "community-tile" (dict "C" . "Href" (printf "/communities/%s" .ID) "Sub" (commSub .))}}</li>
 {{end}}</ul>
-{{else}}{{template "empty" (dict "Icon" "grid" "Title" "No communities yet" "Text" "Communities appear here as soon as a game opens one." )}}{{end}}
+{{else}}{{template "empty" (dict "Icon" "grid" "Title" (t "communities.empty_h") "Text" (t "communities.empty_p"))}}{{end}}
 {{template "foot" .}}{{end}}

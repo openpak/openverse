@@ -1,0 +1,11 @@
+{{define "page"}}{{template "head" .}}
+<p class="crumb"><a href="/communities/{{.Data.Parent.ID}}">{{template "icon" "arrow"}}<span>{{tf "post.back_to" .Data.Parent.Name}}</span></a></p>
+<div class="page-head">
+  <h1>{{tf "related.title" .Data.Parent.Name}}</h1>
+</div>
+{{if .Data.Communities}}
+<ul class="tiles com-grid">
+{{range .Data.Communities}}<li>{{template "community-tile" (dict "C" . "Href" (printf "/communities/%s" .ID) "Sub" (commSub .))}}</li>
+{{end}}</ul>
+{{else}}{{template "empty" (dict "Icon" "grid" "Title" (t "related.empty_h") "Text" (t "related.empty_p"))}}{{end}}
+{{template "foot" .}}{{end}}

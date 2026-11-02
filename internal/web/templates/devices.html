@@ -1,0 +1,72 @@
+{{define "page"}}{{template "head" .}}
+<div class="devices-page">
+  <div class="page-head">
+    <h1>{{t "devices.heading"}}</h1>
+    <p class="lede">{{t "devices.intro"}}</p>
+  </div>
+  {{if eq .Data.Note "removed"}}<p class="notice ok devices-flash" role="status">{{t "devices.n_removed"}}</p>{{end}}
+  <div class="devices-grid">
+    {{if .Data.Confirm}}
+    <section class="card devices-card" aria-labelledby="dev-link">
+      <h2 id="dev-link">{{t "devices.confirm_heading"}}</h2>
+      <p>{{tf "devices.confirm_text" .Data.Confirm.Device}}</p>
+      <form method="post" action="/devices/approve">
+        <input type="hidden" name="k" value="{{.Data.CSRF}}">
+        <input type="hidden" name="code" value="{{.Data.Confirm.Code}}">
+        <div class="btn-row">
+          <button type="submit" class="btn primary">{{t "devices.confirm_yes"}}</button>
+          <a class="btn" href="/devices">{{t "devices.confirm_no"}}</a>
+        </div>
+      </form>
+    </section>
+    {{else}}
+    <section class="card devices-card" aria-labelledby="dev-link">
+      <h2 id="dev-link">{{t "devices.link_heading"}}</h2>
+      {{if eq .Data.Note "approved"}}<p class="notice ok" role="status">{{t "devices.n_approved"}}</p>{{end}}
+      <form method="post" action="/devices/check" class="form-stack" novalidate>
+        <input type="hidden" name="k" value="{{.Data.CSRF}}">
+        <label for="device-code">{{t "devices.code_label"}}</label>
+        <input id="device-code" name="code" type="text" class="field code-field" maxlength="8" placeholder="{{t "devices.code_placeholder"}}" autocomplete="one-time-code" autocapitalize="characters" autocorrect="off" spellcheck="false" required {{if .Data.FieldError}}aria-invalid="true" aria-describedby="device-code-error"{{end}}>
+        {{if .Data.FieldError}}<p id="device-code-error" class="field-error" role="alert">{{t (printf "devices.n_%s" .Data.FieldError)}}</p>{{end}}
+        <button type="submit" class="btn primary">{{t "devices.check"}}</button>
+      </form>
+      <h3 class="help-head">{{t "devices.help_heading"}}</h3>
+      <ul class="help-list">
+        <li>{{t "devices.help_ps3"}}</li>
+        <li>{{t "devices.help_wii"}}</li>
+        <li>{{t "devices.help_dsi"}}</li>
+        <li>{{t "devices.help_x360"}}</li>
+      </ul>
+    </section>
+    {{end}}
+    <section class="card devices-card" aria-labelledby="dev-list">
+      <h2 id="dev-list">{{t "devices.list_heading"}}</h2>
+      {{if .Data.Devices}}
+      <ul class="device-list">
+        {{range .Data.Devices}}<li>
+          <span class="dev-icon dev-{{.Class}}" aria-hidden="true">{{.Badge}}</span>
+          <div class="dev-main">
+            <strong>{{.Label}}</strong>
+            <span class="meta">{{tf "devices.added" .Added}} · {{if .LastUsed}}{{tf "devices.last_used" .LastUsed}}{{else}}{{t "devices.never_used"}}{{end}}</span>
+          </div>
+          <details class="dev-remove">
+            <summary class="btn small">{{t "devices.revoke"}}</summary>
+            <form method="post" action="/devices/revoke" class="dev-confirm">
+              <input type="hidden" name="k" value="{{$.Data.CSRF}}">
+              <input type="hidden" name="id" value="{{.ID}}">
+              <p>{{t "devices.revoke_sure"}}</p>
+              <div class="btn-row">
+                <button type="submit" class="btn danger small">{{t "devices.revoke_yes"}}</button>
+                <a class="btn small" href="/devices">{{t "devices.revoke_no"}}</a>
+              </div>
+            </form>
+          </details>
+        </li>{{end}}
+      </ul>
+      {{else}}
+      <div class="dev-empty"><p class="dev-empty-title">{{t "devices.none_heading"}}</p><p>{{t "devices.none"}}</p></div>
+      {{end}}
+    </section>
+  </div>
+</div>
+{{template "foot" .}}{{end}}

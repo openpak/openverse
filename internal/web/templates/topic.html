@@ -1,0 +1,12 @@
+{{define "page"}}{{template "head" .}}
+<div class="page-head">
+  <p class="eyebrow">{{t "topic.eyebrow"}}</p>
+  <h1>{{.Data.Tag}}</h1>
+</div>
+<div class="stack">
+{{range .Data.Items}}{{template "post" .}}{{else}}
+{{template "empty" (dict "Icon" "chat" "Title" (t "topic.empty_h") "Text" (t "topic.empty_p") "Href" "/communities" "Label" (t "feed.browse"))}}
+{{end}}
+</div>
+{{template "pager" .Data.Pager}}
+{{template "foot" .}}{{end}}

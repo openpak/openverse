@@ -1,39 +1,45 @@
 {{define "page"}}{{template "head" .}}
 <div class="page-head">
-  <h1>Settings</h1>
-  <p class="lede">You are signed in as <b>{{.Data.Name}}</b> with your OpenPak account. Your name comes from there.</p>
+  <h1>{{t "menu.settings"}}</h1>
+  <p class="lede">{{th "settings.lede" .Data.Name}}</p>
 </div>
-{{if .Data.Saved}}<p class="notice ok" role="status">Saved.</p>{{end}}
+{{if .Data.Saved}}<p class="notice ok" role="status">{{t "settings.saved"}}</p>{{end}}
+{{if .ReadOnly}}<p class="notice warn">{{t "settings.readonly"}}</p>{{end}}
 <form method="post" action="/settings" class="settings">
+  <fieldset class="plain" {{if .ReadOnly}}disabled{{end}}>
   <section class="card" id="activity">
-    <h2>Game activity</h2>
-    <p class="muted">Share moments from the games you play, like badges earned, as automatic posts on the Activity page. Off unless you turn it on.</p>
-    <label class="switch"><input type="checkbox" name="activity" value="1" {{if .Data.ActivityOn}}checked{{end}}><span>Share my game activity</span></label>
-    {{if .Data.ActivityCategories}}<fieldset><legend>What to share</legend>
+    <h2>{{t "settings.activity"}}</h2>
+    <p class="muted">{{t "settings.activity_p"}}</p>
+    <label class="switch"><input type="checkbox" name="activity" value="1" {{if .Data.ActivityOn}}checked{{end}}><span>{{t "settings.activity_on"}}</span></label>
+    {{if .Data.ActivityCategories}}<fieldset><legend>{{t "settings.activity_what"}}</legend>
     {{range .Data.ActivityCategories}}<label class="switch"><input type="checkbox" name="category" value="{{.ID}}" {{if .Enabled}}checked{{end}}><span>{{catName .ID}}</span></label>
     {{end}}</fieldset>{{end}}
+    <p class="muted">{{t "settings.activity_note"}}</p>
   </section>
   <section class="card">
-    <h2>Privacy</h2>
-    <fieldset><legend>Who can see your profile</legend>
-      <label class="switch"><input type="radio" name="visibility" value="public" {{if ne .Data.ProfileVisibility "users_only"}}checked{{end}}><span>Everyone, including people who are not signed in</span></label>
-      <label class="switch"><input type="radio" name="visibility" value="users_only" {{if eq .Data.ProfileVisibility "users_only"}}checked{{end}}><span>Only people signed in to OpenVerse</span></label>
+    <h2>{{t "settings.privacy"}}</h2>
+    <fieldset><legend>{{t "settings.who"}}</legend>
+      <label class="switch"><input type="radio" name="visibility" value="public" {{if ne .Data.ProfileVisibility "users_only"}}checked{{end}}><span>{{t "settings.v_public"}}</span></label>
+      <label class="switch"><input type="radio" name="visibility" value="users_only" {{if eq .Data.ProfileVisibility "users_only"}}checked{{end}}><span>{{t "settings.v_users"}}</span></label>
     </fieldset>
-    <label class="switch"><input type="checkbox" name="country" value="1" {{if .Data.ShowCountry}}checked{{end}}><span>Show my country on my profile</span></label>
-    <label for="comment">About me</label>
-    <textarea id="comment" name="comment" class="field" maxlength="200" rows="3" placeholder="A line for your profile (optional)">{{.Data.Comment}}</textarea>
+    <label class="switch"><input type="checkbox" name="country" value="1" {{if .Data.ShowCountry}}checked{{end}}><span>{{t "settings.country"}}</span></label>
+    <label class="switch"><input type="checkbox" name="birthday" value="1" {{if .Data.ShowBirthday}}checked{{end}}><span>{{t "settings.birthday"}}</span></label>
+    <label class="switch"><input type="checkbox" name="skill" value="1" {{if .Data.ShowGameSkill}}checked{{end}}><span>{{t "settings.skill"}}</span></label>
+    <label for="comment">{{t "settings.about"}}</label>
+    <textarea id="comment" name="comment" class="field" maxlength="200" rows="3" placeholder="{{t "settings.about_ph"}}">{{.Data.Comment}}</textarea>
   </section>
   <section class="card">
-    <h2>Notifications</h2>
-    <label class="switch"><input type="checkbox" name="notify_yeah" value="1" {{if .Data.NotifyYeah}}checked{{end}}><span>When someone gives my post a Yeah</span></label>
-    <label class="switch"><input type="checkbox" name="notify_reply" value="1" {{if .Data.NotifyReply}}checked{{end}}><span>When someone replies to my post</span></label>
-    <label class="switch"><input type="checkbox" name="notify_follow" value="1" {{if .Data.NotifyFollow}}checked{{end}}><span>When someone follows me</span></label>
+    <h2>{{t "nav.notifications"}}</h2>
+    <label class="switch"><input type="checkbox" name="notify_yeah" value="1" {{if .Data.NotifyYeah}}checked{{end}}><span>{{t "settings.n_yeah"}}</span></label>
+    <label class="switch"><input type="checkbox" name="notify_reply" value="1" {{if .Data.NotifyReply}}checked{{end}}><span>{{t "settings.n_reply"}}</span></label>
+    <label class="switch"><input type="checkbox" name="notify_follow" value="1" {{if .Data.NotifyFollow}}checked{{end}}><span>{{t "settings.n_follow"}}</span></label>
   </section>
-  <div class="btn-row"><button type="submit" class="btn primary">Save settings</button></div>
+  <div class="btn-row"><button type="submit" class="btn primary">{{t "settings.save"}}</button></div>
+  </fieldset>
 </form>
 <section class="card account-card">
-  <h2>Account</h2>
-  <p class="muted">OpenVerse uses your OpenPak account. Manage your password and linked consoles on openpak.org. Signing out here keeps you signed in there.</p>
-  <div class="btn-row"><a class="btn" href="{{.OpenPak}}/account">{{template "icon" "user"}}Manage OpenPak account</a><a class="btn" href="/auth/logout">{{template "icon" "logout"}}Sign out of OpenVerse</a></div>
+  <h2>{{t "settings.account"}}</h2>
+  <p class="muted">{{t "settings.account_p"}}</p>
+  <div class="btn-row"><a class="btn" href="{{.OpenPak}}/account">{{template "icon" "user"}}{{t "settings.manage"}}</a><a class="btn" href="/devices">{{template "icon" "link"}}{{t "menu.devices"}}</a><a class="btn" href="/users/downloadUserData.json" download>{{template "icon" "share"}}{{t "settings.download"}}</a><a class="btn" href="/auth/logout">{{template "icon" "logout"}}{{t "settings.signout"}}</a></div>
 </section>
 {{template "foot" .}}{{end}}

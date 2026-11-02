@@ -2,28 +2,53 @@
 <section class="card profile-head">
   <span class="av xl"><span class="av-i" aria-hidden="true">{{initial .Data.Name}}</span>{{if .Data.Avatar}}<img src="{{.Data.Avatar}}" alt="" width="96" height="96">{{end}}</span>
   <div class="profile-id">
-    <h1>{{.Data.Name}}{{if .Data.Verified}} <span class="vbadge" title="Verified account">{{template "icon" "check"}}<span class="sr">Verified</span></span>{{end}}</h1>
+    <h1>{{.Data.Name}}{{if .Data.Verified}} <span class="vbadge" title="{{t "post.verified"}}">{{template "icon" "check"}}<span class="sr">{{t "post.verified_short"}}</span></span>{{end}}</h1>
     {{if .Data.Handle}}<p class="muted">@{{.Data.Handle}}</p>{{end}}
     {{if .Data.Bio}}<p class="profile-bio">{{.Data.Bio}}</p>{{end}}
-    <p class="muted stats-line"><b>{{count .Data.Posts}}</b> {{plural .Data.Posts "post" "posts"}} · <b>{{count .Data.Followers}}</b> {{plural .Data.Followers "follower" "followers"}}{{if .Data.Country}} · {{.Data.Country}}{{end}}</p>
+    <p class="muted stats-line"><b>{{count .Data.Posts}}</b> {{tn1 "n.posts" .Data.Posts}} · <b>{{count .Data.Followers}}</b> {{tn1 "n.followers" .Data.Followers}}{{if .Data.Country}} · {{.Data.Country}}{{end}}</p>
   </div>
   <div class="profile-actions">
     {{if .Data.Self}}
-      <a class="btn" href="/settings">{{template "icon" "gear"}}Settings</a>
-    {{else if .Data.Signed}}
+      <a class="btn" href="/settings">{{template "icon" "gear"}}{{t "menu.settings"}}</a>
+    {{else if and .Data.Signed (not .ReadOnly)}}
       <form method="post" action="/users/{{.Data.ID}}/follow">
         <input type="hidden" name="follow" value="{{if .Data.Following}}0{{else}}1{{end}}">
-        <button type="submit" class="btn {{if not .Data.Following}}primary{{end}}" aria-pressed="{{if .Data.Following}}true{{else}}false{{end}}">{{if .Data.Following}}{{template "icon" "check"}}Following{{else}}{{template "icon" "plus"}}Follow{{end}}</button>
+        <button type="submit" class="btn {{if not .Data.Following}}primary{{end}}" aria-pressed="{{if .Data.Following}}true{{else}}false{{end}}">{{if .Data.Following}}{{template "icon" "check"}}{{t "btn.following"}}{{else}}{{template "icon" "plus"}}{{t "btn.follow"}}{{end}}</button>
       </form>
     {{end}}
   </div>
 </section>
-<h2 class="section-title">Posts</h2>
+<nav class="seg tabs-seg" aria-label="{{t "profile.sections"}}">
+  <a href="/users/{{.Data.ID}}" {{if eq .Data.Tab "posts"}}aria-current="page"{{end}}>{{t "profile.posts"}}</a>
+  <a href="/users/{{.Data.ID}}/yeahs" {{if eq .Data.Tab "yeahs"}}aria-current="page"{{end}}>{{t "profile.yeahs"}}</a>
+  <a href="/users/{{.Data.ID}}/following" {{if eq .Data.Tab "following"}}aria-current="page"{{end}}>{{t "profile.following"}}</a>
+  <a href="/users/{{.Data.ID}}/followers" {{if eq .Data.Tab "followers"}}aria-current="page"{{end}}>{{t "profile.followers"}}</a>
+  <a href="/users/{{.Data.ID}}/friends" {{if eq .Data.Tab "friends"}}aria-current="page"{{end}}>{{t "profile.friends"}}</a>
+  <a href="/users/{{.Data.ID}}/activity" {{if eq .Data.Tab "activity"}}aria-current="page"{{end}}>{{t "nav.activity"}}</a>
+</nav>
+{{if or (eq .Data.Tab "posts") (eq .Data.Tab "yeahs")}}
 <div class="stack">
 {{range .Data.Items}}{{template "post" .}}{{else}}
-{{if .Data.Self}}{{template "empty" (dict "Icon" "pen" "Title" "You have not posted yet" "Text" "Say hello in a community. Your posts will show here." "Href" "/new" "Label" "New post")}}
-{{else}}{{template "empty" (dict "Icon" "chat" "Title" "No posts yet" "Text" "This person has not posted anything.")}}{{end}}
+{{if eq .Data.Tab "yeahs"}}{{template "empty" (dict "Icon" "heart" "Title" (t "profile.no_yeahs_h") "Text" (t "profile.no_yeahs_p"))}}
+{{else if .Data.Self}}{{template "empty" (dict "Icon" "pen" "Title" (t "profile.self_empty_h") "Text" (t "profile.self_empty_p") "Href" "/new" "Label" (t "nav.newpost"))}}
+{{else}}{{template "empty" (dict "Icon" "chat" "Title" (t "community.empty_h") "Text" (t "profile.other_empty_p"))}}{{end}}
 {{end}}
 </div>
+{{else if eq .Data.Tab "activity"}}
+{{template "activity-list" .Data.ActivityData}}
+{{else}}
+{{if .Data.People}}
+<ul class="card rows people">
+{{range .Data.People}}<li><a href="/users/{{.ID}}" aria-label="{{.Name}}">{{template "avatar" .}}</a><div class="sub"><p><b><a href="/users/{{.ID}}">{{.Name}}</a></b></p>{{if .Handle}}<p class="muted">@{{.Handle}}</p>{{end}}</div></li>
+{{end}}</ul>
+{{end}}
+{{if .Data.Communities}}
+<h2 class="section-title">{{t "nav.communities"}}</h2>
+<ul class="tiles com-grid">
+{{range .Data.Communities}}<li>{{template "community-tile" (dict "C" . "Href" (printf "/communities/%s" .ID) "Sub" (commSub .))}}</li>
+{{end}}</ul>
+{{end}}
+{{if and (not .Data.People) (not .Data.Communities)}}{{template "empty" (dict "Icon" "users" "Title" (t "profile.no_people_h") "Text" (t "profile.no_people_p"))}}{{end}}
+{{end}}
 {{template "pager" .Data.Pager}}
 {{template "foot" .}}{{end}}

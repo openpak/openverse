@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
@@ -36,6 +35,7 @@ func (c *Client) Viewer(ctx context.Context, viewer string) (store.Viewer, error
 	var s struct {
 		PID      int64 `json:"pid"`
 		ReadOnly bool  `json:"readOnly"`
+		Off      bool  `json:"openverseOff"`
 		Content  struct {
 			Communities []string `json:"followed_communities"`
 			Users       []int64  `json:"followed_users"`
@@ -47,7 +47,7 @@ func (c *Client) Viewer(ctx context.Context, viewer string) (store.Viewer, error
 	if err := c.getOne(ctx, "/self", viewer, &s); err != nil {
 		return store.Viewer{}, err
 	}
-	v := store.Viewer{ID: pidStr(s.PID), ReadOnly: s.ReadOnly, Moderator: s.Permissions.Moderator,
+	v := store.Viewer{ID: pidStr(s.PID), ReadOnly: s.ReadOnly || s.Off, Off: s.Off, Moderator: s.Permissions.Moderator,
 		FollowedCommunities: map[string]bool{}, FollowedUsers: map[string]bool{}}
 	for _, id := range s.Content.Communities {
 		v.FollowedCommunities[id] = true
@@ -166,18 +166,7 @@ func (c *Client) Feed(ctx context.Context, viewer, scope string, p store.Page) (
 // Activity: GET /activity?scope=everyone|following.
 func (c *Client) Activity(ctx context.Context, viewer, scope string, p store.Page) ([]store.ActivityItem, error) {
 	var out struct {
-		Items []struct {
-			ID        int64     `json:"id"`
-			PID       int64     `json:"pid"`
-			Name      string    `json:"name"`
-			Category  string    `json:"category"`
-			Subject   string    `json:"subject"`
-			Link      string    `json:"link"`
-			Image     string    `json:"image"`
-			Count     int       `json:"count"`
-			Digest    bool      `json:"digest"`
-			CreatedAt time.Time `json:"createdAt"`
-		} `json:"items"`
+		Items []wireActivity `json:"items"`
 	}
 	if scope != "following" {
 		scope = "everyone"
@@ -185,13 +174,7 @@ func (c *Client) Activity(ctx context.Context, viewer, scope string, p store.Pag
 	if err := c.do(ctx, http.MethodGet, "/activity"+q(p, url.Values{"scope": {scope}}), viewer, nil, &out); err != nil {
 		return nil, err
 	}
-	items := make([]store.ActivityItem, 0, len(out.Items))
-	for _, i := range out.Items {
-		items = append(items, store.ActivityItem{ID: strconv.FormatInt(i.ID, 10), Category: i.Category, Subject: i.Subject, Link: i.Link,
-			Image: i.Image, Count: i.Count, Digest: i.Digest, Created: i.CreatedAt,
-			Person: store.Person{ID: pidStr(i.PID), Name: i.Name, Avatar: avatarFor(i.PID, "")}})
-	}
-	return items, nil
+	return activityItems(out.Items), nil
 }
 
 // ---- posts ----------------------------------------------------------------------------------
@@ -400,6 +383,8 @@ func (c *Client) Settings(ctx context.Context, viewer string) (store.Settings, e
 	var u struct {
 		Visibility   string  `json:"profileVisibility"`
 		Country      bool    `json:"countryVisible"`
+		Birthday     bool    `json:"birthdayVisible"`
+		GameSkill    bool    `json:"gameSkillVisible"`
 		Comment      *string `json:"comment"`
 		NotifyYeah   bool    `json:"notifyEmpathy"`
 		NotifyFollow bool    `json:"notifyFollows"`
@@ -410,6 +395,7 @@ func (c *Client) Settings(ctx context.Context, viewer string) (store.Settings, e
 		return s, err
 	}
 	s.ProfileVisibility, s.ShowCountry, s.NotifyYeah, s.NotifyFollow, s.NotifyReply = u.Visibility, u.Country, u.NotifyYeah, u.NotifyFollow, u.NotifyReply
+	s.ShowBirthday, s.ShowGameSkill = u.Birthday, u.GameSkill
 	if u.Comment != nil {
 		s.Comment = *u.Comment
 	}
@@ -425,19 +411,12 @@ func (c *Client) Settings(ctx context.Context, viewer string) (store.Settings, e
 // SaveSettings: POST /users/@me/settings and POST /activity/settings. The user settings call is
 // a full replace, so the fields this page does not edit are read first and sent back unchanged.
 func (c *Client) SaveSettings(ctx context.Context, viewer string, s store.Settings) error {
-	var cur struct {
-		Birthday  bool `json:"birthdayVisible"`
-		GameSkill bool `json:"gameSkillVisible"`
-	}
-	if err := c.getOne(ctx, "/users/@me/settings", viewer, &cur); err != nil {
-		return err
-	}
 	var comment any
 	if t := strings.TrimSpace(s.Comment); t != "" {
 		comment = t
 	}
-	body := map[string]any{"profileVisibility": s.ProfileVisibility, "countryVisible": s.ShowCountry, "birthdayVisible": cur.Birthday,
-		"gameSkillVisible": cur.GameSkill, "comment": comment, "notifyEmpathy": s.NotifyYeah, "notifyFollows": s.NotifyFollow, "notifyReply": s.NotifyReply}
+	body := map[string]any{"profileVisibility": s.ProfileVisibility, "countryVisible": s.ShowCountry, "birthdayVisible": s.ShowBirthday,
+		"gameSkillVisible": s.ShowGameSkill, "comment": comment, "notifyEmpathy": s.NotifyYeah, "notifyFollows": s.NotifyFollow, "notifyReply": s.NotifyReply}
 	if err := c.do(ctx, http.MethodPost, "/users/@me/settings", viewer, body, nil); err != nil {
 		return err
 	}

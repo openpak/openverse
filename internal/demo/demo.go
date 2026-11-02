@@ -37,6 +37,9 @@ type Store struct {
 	rulesOK     bool
 	next        int
 	now         func() time.Time
+	devices     []store.DeviceLink
+	// Mode makes the signed-in person supervised: "" full access, "read" or "off" (tests and screenshots).
+	Mode string
 }
 
 var _ store.Store = (*Store)(nil)
@@ -122,6 +125,12 @@ func (s *Store) seed() {
 	reply(r1, "1800000044", "Saving this one for the weekend.", 20)
 	reply(r1, Me, "Just tried it. The second Koopa trick works!", 5)
 	s.yeahs["p"+strconv.Itoa(105)] = map[string]bool{Me: true}
+	t := s.now()
+	used := t.Add(-26 * time.Hour)
+	s.devices = []store.DeviceLink{
+		{ID: "d1", Class: "ps3", Label: "PlayStation 3", Created: t.Add(-9 * 24 * time.Hour), LastUsed: &used},
+		{ID: "d2", Class: "x360", Label: "Xbox 360", Created: t.Add(-2 * 24 * time.Hour)},
+	}
 	s.settings = store.Settings{ActivityOn: false, ProfileVisibility: "public", ShowCountry: true, NotifyYeah: true, NotifyFollow: true, NotifyReply: true,
 		Comment: "Plays everything with a pen and a grin.", ActivityCategories: []store.ActivityCategory{{ID: "badge", Enabled: true}, {ID: "splatfest"}, {ID: "kart"}, {ID: "maker", Enabled: true}}}
 }
@@ -214,7 +223,7 @@ func (s *Store) AcceptRules(context.Context, string) error {
 func (s *Store) Viewer(_ context.Context, v string) (store.Viewer, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return store.Viewer{ID: v, FollowedCommunities: s.followedC, FollowedUsers: s.followedU}, nil
+	return store.Viewer{ID: v, ReadOnly: s.Mode != "", Off: s.Mode == "off", FollowedCommunities: s.followedC, FollowedUsers: s.followedU}, nil
 }
 func (s *Store) UnreadNotifications(context.Context, string) (int, error) { return 3, nil }
 

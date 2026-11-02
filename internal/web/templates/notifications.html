@@ -1,7 +1,7 @@
 {{define "page"}}{{template "head" .}}
 <div class="page-head">
-  <h1>Notifications</h1>
-  <p class="lede">Yeahs, replies and new followers.</p>
+  <h1>{{t "nav.notifications"}}</h1>
+  <p class="lede">{{t "notes.lede"}}</p>
 </div>
 {{if .Data.Items}}
 <ul class="card rows notes">
@@ -9,17 +9,17 @@
   {{if .Actors}}<a href="/users/{{(index .Actors 0).ID}}" aria-label="{{(index .Actors 0).Name}}">{{template "avatar" (index .Actors 0)}}</a>{{else}}<span class="av note-sys">{{template "icon" "info"}}</span>{{end}}
   <div class="sub">
     <p>
-    {{if eq .Kind "yeah"}}<a href="/posts/{{.PostID}}">{{$n := .}}{{range $i, $a := .Actors}}{{if $i}}{{if $n.Others}}, {{else}} and {{end}}{{end}}<b>{{$a.Name}}</b>{{end}}{{if .Others}} and {{.Others}} {{plural .Others "other" "others"}}{{end}} gave your post a Yeah</a>
-    {{else if eq .Kind "reply"}}<a href="/posts/{{.PostID}}"><b>{{(index .Actors 0).Name}}</b> replied to your post</a>
-    {{else if eq .Kind "follow"}}<a href="/users/{{(index .Actors 0).ID}}">{{$n := .}}{{range $i, $a := .Actors}}{{if $i}}{{if $n.Others}}, {{else}} and {{end}}{{end}}<b>{{$a.Name}}</b>{{end}}{{if .Others}} and {{.Others}} {{plural .Others "other" "others"}}{{end}} started following you</a>
-    {{else if eq .Kind "removed"}}One of your posts was removed{{if .Text}} ({{.Text}}){{end}}. <a href="{{$.OpenPak}}/help">Contact the moderators</a> if you think that was a mistake.
-    {{else if eq .Kind "limited"}}Your account is limited from posting{{if .Text}}: {{.Text}}{{end}}. <a href="{{$.OpenPak}}/help">Get help</a>
+    {{if eq .Kind "yeah"}}<a href="/posts/{{.PostID}}">{{thn "notes.yeah" (add (len .Actors) .Others) (actors .)}}</a>
+    {{else if eq .Kind "reply"}}<a href="/posts/{{.PostID}}">{{th "notes.reply" (actors .)}}</a>
+    {{else if eq .Kind "follow"}}<a href="/users/{{(index .Actors 0).ID}}">{{thn "notes.follow" (add (len .Actors) .Others) (actors .)}}</a>
+    {{else if eq .Kind "removed"}}{{if .Text}}{{tf "notes.removed_why" .Text}}{{else}}{{t "notes.removed"}}{{end}} <a href="{{$.OpenPak}}/help">{{t "notes.contact"}}</a>
+    {{else if eq .Kind "limited"}}{{if .Text}}{{tf "notes.limited_why" .Text}}{{else}}{{t "notes.limited"}}{{end}} <a href="{{$.OpenPak}}/help">{{t "notes.get_help"}}</a>
     {{else}}{{if .Link}}<a href="{{.Link}}">{{.Text}}</a>{{else}}{{.Text}}{{end}}{{end}}
     </p>
     <p class="muted"><time datetime="{{iso .Created}}">{{ago .Created}}</time></p>
   </div>
 </li>
 {{end}}</ul>
-{{else}}{{template "empty" (dict "Icon" "bell" "Title" "You are all caught up" "Text" "When someone replies to you, gives your post a Yeah or follows you, it shows up here.")}}{{end}}
+{{else}}{{template "empty" (dict "Icon" "bell" "Title" (t "notes.empty_h") "Text" (t "notes.empty_p"))}}{{end}}
 {{template "pager" .Data.Pager}}
 {{template "foot" .}}{{end}}

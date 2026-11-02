@@ -1,0 +1,5 @@
+{{define "page"}}{{template "head" .}}
+<div class="narrow">
+<div class="card empty-state error-card">{{template "icon" "lock"}}<h1>{{t "off.title"}}</h1><p>{{t "off.p"}}</p><div class="btn-row"><a class="btn primary" href="{{.OpenPak}}/account">{{t "settings.manage"}}</a><a class="btn" href="/auth/logout">{{t "menu.signout"}}</a></div></div>
+</div>
+{{template "foot" .}}{{end}}

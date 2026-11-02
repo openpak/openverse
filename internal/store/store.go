@@ -35,6 +35,7 @@ type Identity struct {
 type Viewer struct {
 	ID                  string
 	ReadOnly            bool // a supervised account may read but not post
+	Off                 bool // a parent turned OpenVerse off: nothing but the explanation and sign-out
 	Moderator           bool
 	FollowedCommunities map[string]bool
 	FollowedUsers       map[string]bool
@@ -135,6 +136,8 @@ type Settings struct {
 	ActivityCategories []ActivityCategory
 	ProfileVisibility  string // public | users_only
 	ShowCountry        bool
+	ShowBirthday       bool
+	ShowGameSkill      bool
 	NotifyYeah         bool
 	NotifyFollow       bool
 	NotifyReply        bool
@@ -152,6 +155,15 @@ type NewPost struct {
 	Body    string
 	Drawing string // base64 of a 1-bit BMP, empty for a text post
 	Spoiler bool
+}
+
+// DeviceLink is one console or browser linked to an account (Linked devices).
+type DeviceLink struct {
+	ID       string
+	Class    string // ps3 | wii | dsi | x360 | lite
+	Label    string
+	Created  time.Time
+	LastUsed *time.Time
 }
 
 // Page is a window onto a list.
@@ -196,4 +208,18 @@ type Store interface {
 	Notifications(ctx context.Context, viewer string, p Page) ([]Notification, int, error)
 	Settings(ctx context.Context, viewer string) (Settings, error)
 	SaveSettings(ctx context.Context, viewer string, s Settings) error
+	Export(ctx context.Context, viewer string) ([]byte, error) // the person's data, as JSON
+
+	// Profile tabs, topics, related communities
+	Yeahed(ctx context.Context, viewer, id string, p Page) ([]Post, error)
+	UserActivity(ctx context.Context, viewer, id string, p Page) ([]ActivityItem, error)
+	Relations(ctx context.Context, viewer, id, kind string, p Page) ([]Person, []Community, error) // kind: following | followers | friends
+	TopicPosts(ctx context.Context, viewer, tag string, p Page) ([]Post, error)
+	SubCommunities(ctx context.Context, viewer, parent string) ([]Community, error)
+	SetSpoiler(ctx context.Context, viewer, post string, on bool) error
+	DeleteActivity(ctx context.Context, viewer, id string) error
+
+	// Linked devices (keyed by the OpenPak account, not the OpenVerse number)
+	DeviceLinks(ctx context.Context, account string) ([]DeviceLink, error)
+	RevokeDevice(ctx context.Context, account, id string) error
 }

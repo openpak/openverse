@@ -1,21 +1,21 @@
 {{define "page"}}{{template "head" .}}
 <div class="narrow">
 <div class="page-head">
-  <h1>About OpenVerse</h1>
-  <p class="lede">OpenPak's own community space: posts, drawings and conversations about the games you play.</p>
+  <h1>{{t "about.title"}}</h1>
+  <p class="lede">{{t "site.desc"}}</p>
 </div>
 <div class="card prose">
-  <h2>One account</h2>
-  <p>Your OpenPak account is your OpenVerse account. There is nothing separate to set up, and no password here: sign-in happens on openpak.org.</p>
-  <h2>Web, app and consoles</h2>
-  <p>Posts made on the web, in the OpenPak app and on Wii U and 3DS are one conversation. A drawing you make here is stored in the console's own format, so it shows up on the consoles too.</p>
-  <h2>Communities</h2>
-  <p>Each game has a community. Follow the ones you play, post in them, and give Yeahs to what you like. Communities and posts follow the community rules and OpenPak's terms.</p>
-  <h2>Privacy and safety</h2>
-  <p>Accounts supervised through OpenPak parental controls can read but not post. Anyone can report a post, and moderators remove what breaks the rules.</p>
-  <h2>Open source</h2>
-  <p>OpenVerse is free software under the AGPL-3.0: <a href="https://github.com/openpak/openverse" rel="noopener">github.com/openpak/openverse</a>. Its Wii U and 3DS support builds on Juxtaposition by Pretendo Network (AGPL-3.0), which OpenVerse still relies on for the console protocol. Miiverse is a trademark of Nintendo; OpenVerse is not affiliated with or endorsed by Nintendo.</p>
+  <h2>{{t "about.h1"}}</h2>
+  <p>{{t "about.p1"}}</p>
+  <h2>{{t "about.h2"}}</h2>
+  <p>{{t "about.p2"}}</p>
+  <h2>{{t "about.h3"}}</h2>
+  <p>{{t "about.p3"}}</p>
+  <h2>{{t "about.h4"}}</h2>
+  <p>{{t "about.p4"}}</p>
+  <h2>{{t "about.h5"}}</h2>
+  <p>{{th "about.p5" "https://github.com/openpak/openverse"}}</p>
 </div>
-{{if and .SignIn (not .Me)}}<p class="about-cta"><a class="btn primary" href="/auth/login?next=/feed">Sign in</a></p>{{end}}
+{{if and .SignIn (not .Me)}}<p class="about-cta"><a class="btn primary" href="/auth/login?next=/feed">{{t "nav.signin"}}</a></p>{{end}}
 </div>
 {{template "foot" .}}{{end}}

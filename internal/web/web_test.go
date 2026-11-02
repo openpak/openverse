@@ -262,7 +262,7 @@ func TestNoUpstreamBrandingInPages(t *testing.T) {
 	c := signIn(t, s, "")
 	for _, p := range []string{"/communities", "/feed", "/settings"} {
 		body := do(t, s, "GET", p, nil, c).Body.String()
-		if regexp.MustCompile(`(?i)pretendo\.|preten\.do|juxt\.`).MatchString(body) {
+		if regexp.MustCompile(`(?i)pretendo|preten\.do|juxt\.`).MatchString(body) {
 			t.Errorf("%s links upstream", p)
 		}
 	}

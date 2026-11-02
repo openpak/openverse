@@ -1,23 +1,15 @@
 {{define "page"}}{{template "head" .}}
 <div class="page-head">
-  <h1>Activity</h1>
-  <p class="lede">Moments from games, shared by players who turned it on: badges earned, courses uploaded, results.</p>
+  <h1>{{t "nav.activity"}}</h1>
+  <p class="lede">{{t "activity.lede"}}</p>
 </div>
 <div class="seg-row">
-<nav class="seg" aria-label="Activity">
-  <a href="/activity" {{if eq .Data.Scope "everyone"}}aria-current="page"{{end}}>Everyone</a>
-  <a href="/activity?scope=following" {{if eq .Data.Scope "following"}}aria-current="page"{{end}}>Following</a>
+<nav class="seg" aria-label="{{t "nav.activity"}}">
+  <a href="/activity" {{if eq .Data.Scope "everyone"}}aria-current="page"{{end}}>{{t "feed.everyone"}}</a>
+  <a href="/activity?scope=following" {{if eq .Data.Scope "following"}}aria-current="page"{{end}}>{{t "feed.following"}}</a>
 </nav>
-<a class="btn" href="/settings#activity">{{template "icon" "gear"}}Share my activity</a>
+<a class="btn" href="/settings#activity">{{template "icon" "gear"}}{{t "activity.share"}}</a>
 </div>
-{{if .Data.Items}}
-<ul class="card rows act-list">
-{{range .Data.Items}}<li>
-  <a href="/users/{{.Person.ID}}" aria-label="{{.Person.Name}}">{{template "avatar" .Person}}</a>
-  <div class="sub"><p><b><a href="/users/{{.Person.ID}}">{{.Person.Name}}</a></b> {{if .Digest}}shared {{.Count}} moments{{else}}{{.Subject}}{{end}}</p><p class="muted"><time datetime="{{iso .Created}}">{{ago .Created}}</time></p></div>
-  {{if .Image}}<img class="act-art" src="{{.Image}}" alt="" loading="lazy">{{end}}
-</li>
-{{end}}</ul>
-{{else}}{{template "empty" (dict "Icon" "pulse" "Title" "No activity yet" "Text" "When players opt in to sharing, their game moments show up here.")}}{{end}}
+{{template "activity-list" .Data}}
 {{template "pager" .Data.Pager}}
 {{template "foot" .}}{{end}}

@@ -5,30 +5,33 @@
     <span class="com-icon lg">{{if .Data.Icon}}<img src="{{.Data.Icon}}" alt="" width="96" height="96">{{else}}<span aria-hidden="true">{{initial .Data.Name}}</span>{{end}}</span>
     <div class="com-title">
       <h1>{{.Data.Name}}</h1>
-      <p class="muted">{{count .Data.Followers}} {{plural .Data.Followers "follower" "followers"}}{{if ge .Data.Posts 0}} · {{count .Data.Posts}} {{plural .Data.Posts "post" "posts"}}{{end}}</p>
+      <p class="muted">{{tn "n.followers" .Data.Followers}}{{if ge .Data.Posts 0}} · {{tn "n.posts" .Data.Posts}}{{end}}</p>
     </div>
     <div class="com-actions">
       {{if .Data.Signed}}
+      {{if not .ReadOnly}}
       <form method="post" action="/communities/{{.Data.ID}}/follow">
         <input type="hidden" name="follow" value="{{if .Data.Following}}0{{else}}1{{end}}">
-        <button type="submit" class="btn" aria-pressed="{{if .Data.Following}}true{{else}}false{{end}}">{{if .Data.Following}}{{template "icon" "check"}}Following{{else}}{{template "icon" "plus"}}Follow{{end}}</button>
+        <button type="submit" class="btn" aria-pressed="{{if .Data.Following}}true{{else}}false{{end}}">{{if .Data.Following}}{{template "icon" "check"}}{{t "btn.following"}}{{else}}{{template "icon" "plus"}}{{t "btn.follow"}}{{end}}</button>
       </form>
-      {{if .Data.CanPost}}<a class="btn primary" href="/new?community={{.Data.ID}}">{{template "icon" "pen"}}Post here</a>{{end}}
+      {{if .Data.CanPost}}<a class="btn primary" href="/new?community={{.Data.ID}}">{{template "icon" "pen"}}{{t "community.post_here"}}</a>{{end}}
+      {{end}}
       {{else}}
-      <a class="btn primary" href="/auth/login?next={{.Next}}">Sign in to post</a>
+      <a class="btn primary" href="/auth/login?next={{.Next}}">{{t "community.signin_post"}}</a>
       {{end}}
     </div>
     {{if .Data.Description}}<p class="com-desc">{{.Data.Description}}</p>{{end}}
   </div>
 </section>
-<nav class="seg" aria-label="Sort posts">
-  <a href="/communities/{{.Data.ID}}" {{if not .Data.Popular}}aria-current="page"{{end}}>Recent</a>
-  <a href="/communities/{{.Data.ID}}?sort=popular" {{if .Data.Popular}}aria-current="page"{{end}}>Popular</a>
+<nav class="seg" aria-label="{{t "community.sort"}}">
+  <a href="/communities/{{.Data.ID}}" {{if not .Data.Popular}}aria-current="page"{{end}}>{{t "community.recent"}}</a>
+  <a href="/communities/{{.Data.ID}}?sort=popular" {{if .Data.Popular}}aria-current="page"{{end}}>{{t "community.popular"}}</a>
+  {{if .Data.HasRelated}}<a href="/communities/{{.Data.ID}}/related">{{t "community.related"}}</a>{{end}}
 </nav>
-{{if not .Data.Open}}<p class="notice warn">This community is closed to new posts.</p>{{end}}
+{{if not .Data.Open}}<p class="notice warn">{{t "community.closed"}}</p>{{end}}
 <div class="stack">
 {{range .Data.Items}}{{template "post" .}}{{else}}
-{{template "empty" (dict "Icon" "chat" "Title" "No posts yet" "Text" "Be the first to post in this community." "Href" (printf "/new?community=%s" .Data.ID) "Label" "Post here")}}
+{{template "empty" (dict "Icon" "chat" "Title" (t "community.empty_h") "Text" (t "community.empty_p") "Href" (printf "/new?community=%s" .Data.ID) "Label" (t "community.post_here"))}}
 {{end}}
 </div>
 {{template "pager" .Data.Pager}}

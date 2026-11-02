@@ -1,35 +1,41 @@
 {{define "page"}}{{template "head" .}}
-<p class="crumb"><a href="/communities/{{.Data.Post.Community.ID}}">{{template "icon" "arrow"}}<span>Back to {{.Data.Post.Community.Name}}</span></a></p>
+<p class="crumb"><a href="/communities/{{.Data.Post.Community.ID}}">{{template "icon" "arrow"}}<span>{{tf "post.back_to" .Data.Post.Community.Name}}</span></a></p>
 <div class="thread">
+{{if .Data.Reported}}<p class="notice ok" role="status">{{t "post.reported"}}</p>{{end}}
 {{template "post" .Data.Post}}
 {{if .Data.Post.Mine}}
-<div class="post-tools"><form method="post" action="/posts/{{.Data.Post.ID}}/delete" data-confirm="Delete this post? This cannot be undone."><button type="submit" class="btn small danger">{{template "icon" "trash"}}Delete post</button></form></div>
-{{else if and .Data.Post.Signed (not .Data.Post.Removed)}}
+<div class="post-tools">
+  {{if not .Data.Post.ReadOnly}}
+  <form method="post" action="/posts/{{.Data.Post.ID}}/spoiler"><input type="hidden" name="spoiler" value="{{if .Data.Post.Spoiler}}0{{else}}1{{end}}"><button type="submit" class="btn small">{{template "icon" "info"}}{{if .Data.Post.Spoiler}}{{t "post.unspoiler"}}{{else}}{{t "post.mark_spoiler"}}{{end}}</button></form>
+  <form method="post" action="/posts/{{.Data.Post.ID}}/delete" data-confirm="{{t "post.delete_sure"}}"><button type="submit" class="btn small danger">{{template "icon" "trash"}}{{t "post.delete"}}</button></form>
+  {{end}}
+</div>
+{{else if and .Data.Post.Signed (not .Data.Post.ReadOnly) (not .Data.Post.Removed)}}
 <details class="post-tools report">
-  <summary class="btn small">{{template "icon" "flag"}}Report this post</summary>
+  <summary class="btn small">{{template "icon" "flag"}}{{t "report.open"}}</summary>
   <form method="post" action="/posts/{{.Data.Post.ID}}/report" class="form-stack card report-form">
-    <label for="reason">Why are you reporting it?</label>
+    <label for="reason">{{t "report.why"}}</label>
     <select id="reason" name="reason" class="field">
-      <option value="11">It is not nice</option><option value="12">Inappropriate for the community</option><option value="13">Spam or advertising</option>
-      <option value="15">Piracy</option><option value="20">Shares personal information</option><option value="23">Impersonation</option><option value="9">Something else</option>
+      <option value="11">{{t "report.r11"}}</option><option value="12">{{t "report.r12"}}</option><option value="13">{{t "report.r13"}}</option>
+      <option value="15">{{t "report.r15"}}</option><option value="20">{{t "report.r20"}}</option><option value="23">{{t "report.r23"}}</option><option value="9">{{t "report.r9"}}</option>
     </select>
-    <label for="message">Anything we should know? (optional)</label>
+    <label for="message">{{t "report.more"}}</label>
     <textarea id="message" name="message" class="field" maxlength="280" rows="3"></textarea>
-    <button type="submit" class="btn primary">Send report</button>
+    <button type="submit" class="btn primary">{{t "report.send"}}</button>
   </form>
 </details>
 {{end}}
 <section id="replies" aria-labelledby="replies-h">
   <div class="section-row">
-    <h2 id="replies-h">{{.Data.Post.Replies}} {{plural .Data.Post.Replies "reply" "replies"}}</h2>
-    {{if gt .Data.Post.Replies 1}}<nav class="seg small" aria-label="Order replies">
-      <a href="/posts/{{.Data.Post.ID}}#replies" {{if not .Data.Newest}}aria-current="page"{{end}}>Oldest first</a>
-      <a href="/posts/{{.Data.Post.ID}}?sort=newest#replies" {{if .Data.Newest}}aria-current="page"{{end}}>Newest first</a>
+    <h2 id="replies-h">{{tn "n.replies" .Data.Post.Replies}}</h2>
+    {{if gt .Data.Post.Replies 1}}<nav class="seg small" aria-label="{{t "post.order"}}">
+      <a href="/posts/{{.Data.Post.ID}}#replies" {{if not .Data.Newest}}aria-current="page"{{end}}>{{t "post.oldest"}}</a>
+      <a href="/posts/{{.Data.Post.ID}}?sort=newest#replies" {{if .Data.Newest}}aria-current="page"{{end}}>{{t "post.newest"}}</a>
     </nav>{{end}}
   </div>
   <div class="stack replies">
   {{range .Data.Replies}}{{template "post" .}}{{else}}
-  <p class="muted no-replies">No replies yet.</p>
+  <p class="muted no-replies">{{t "post.no_replies"}}</p>
   {{end}}
   </div>
   {{if .Data.CanReply}}
@@ -37,15 +43,17 @@
     <input type="hidden" name="kind" value="text" data-kind>
     <input type="hidden" name="painting" value="" data-painting>
     {{if .Data.Error}}<p class="notice bad" role="alert">{{.Data.Error}}</p>{{end}}
-    <label for="reply-body" class="reply-label">Reply to {{.Data.Post.Author.Name}}</label>
-    <textarea id="reply-body" name="body" maxlength="{{.Data.Max}}" rows="3" placeholder="Write a reply" data-body>{{.Data.ReplyDraft}}</textarea>
+    <label for="reply-body" class="reply-label">{{tf "post.reply_to" .Data.Post.Author.Name}}</label>
+    <textarea id="reply-body" name="body" maxlength="{{.Data.Max}}" rows="3" placeholder="{{t "post.reply_placeholder"}}" data-body>{{.Data.ReplyDraft}}</textarea>
     <div class="composer-foot">
       <span class="muted counter" data-counter aria-live="polite">{{.Data.Max}}</span>
-      <button type="submit" class="btn primary">Reply</button>
+      <button type="submit" class="btn primary">{{t "post.reply"}}</button>
     </div>
   </form>
+  {{else if and .Data.Post.Signed .Data.Post.ReadOnly}}
+  <div class="card invite"><div><h2>{{t "compose.off_h"}}</h2><p>{{t "compose.off_p"}}</p></div></div>
   {{else if not .Data.Post.Signed}}
-  <div class="card invite"><div><h2>Want to reply?</h2><p>Sign in with your OpenPak account to join the conversation.</p></div><a class="btn primary" href="/auth/login?next={{.Next}}">Sign in</a></div>
+  <div class="card invite"><div><h2>{{t "post.want_reply"}}</h2><p>{{t "post.want_reply_p"}}</p></div><a class="btn primary" href="/auth/login?next={{.Next}}">{{t "nav.signin"}}</a></div>
   {{end}}
 </section>
 </div>

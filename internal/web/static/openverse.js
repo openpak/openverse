@@ -63,9 +63,9 @@
     if (!b) { return; }
     var url = new URL(b.getAttribute('data-share'), location.origin).href;
     var label = b.querySelector('span');
-    var done = function () { if (label) { var old = label.textContent; label.textContent = 'Copied'; setTimeout(function () { label.textContent = old; }, 1800); } };
-    if (navigator.clipboard) { navigator.clipboard.writeText(url).then(done, function () { window.prompt('Copy this link', url); }); }
-    else { window.prompt('Copy this link', url); }
+    var done = function () { if (label) { var old = label.textContent; label.textContent = b.getAttribute('data-copied') || 'Copied'; setTimeout(function () { label.textContent = old; }, 1800); } };
+    if (navigator.clipboard) { navigator.clipboard.writeText(url).then(done, function () { window.prompt(b.getAttribute('data-prompt') || 'Copy this link', url); }); }
+    else { window.prompt(b.getAttribute('data-prompt') || 'Copy this link', url); }
   });
 
   // Composer: character counter, text/drawing tabs, the pad.

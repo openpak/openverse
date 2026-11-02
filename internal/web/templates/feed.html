@@ -1,18 +1,18 @@
 {{define "page"}}{{template "head" .}}
 <div class="page-head">
-  <h1>Feed</h1>
-  <p class="lede">{{if eq .Data.Scope "following"}}Posts from the people and games you follow.{{else}}The newest posts across every community.{{end}}</p>
+  <h1>{{t "nav.feed"}}</h1>
+  <p class="lede">{{if eq .Data.Scope "following"}}{{t "feed.lede_following"}}{{else}}{{t "feed.lede_everyone"}}{{end}}</p>
 </div>
-<nav class="seg" aria-label="Feed">
-  <a href="/feed" {{if eq .Data.Scope "following"}}aria-current="page"{{end}}>Following</a>
-  <a href="/feed?scope=everyone" {{if eq .Data.Scope "everyone"}}aria-current="page"{{end}}>Everyone</a>
+<nav class="seg" aria-label="{{t "nav.feed"}}">
+  <a href="/feed" {{if eq .Data.Scope "following"}}aria-current="page"{{end}}>{{t "feed.following"}}</a>
+  <a href="/feed?scope=everyone" {{if eq .Data.Scope "everyone"}}aria-current="page"{{end}}>{{t "feed.everyone"}}</a>
 </nav>
 <div class="stack">
 {{range .Data.Posts}}{{template "post" .}}{{else}}
 {{if eq .Data.Scope "following"}}
-{{template "empty" (dict "Icon" "users" "Title" "Your feed is empty" "Text" "Follow a few games or people and their posts show up here." "Href" "/communities" "Label" "Browse communities")}}
+{{template "empty" (dict "Icon" "users" "Title" (t "feed.empty_following_h") "Text" (t "feed.empty_following_p") "Href" "/communities" "Label" (t "feed.browse"))}}
 {{else}}
-{{template "empty" (dict "Icon" "chat" "Title" "Nothing posted yet" "Text" "New posts from every community appear here." "Href" "/communities" "Label" "Browse communities")}}
+{{template "empty" (dict "Icon" "chat" "Title" (t "feed.empty_everyone_h") "Text" (t "feed.empty_everyone_p") "Href" "/communities" "Label" (t "feed.browse"))}}
 {{end}}{{end}}
 </div>
 {{template "pager" .Data.Pager}}

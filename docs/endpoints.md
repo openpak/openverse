@@ -26,7 +26,14 @@ Every call goes to `{OPENVERSE_API_URL}/internal/v1/web/api/v1/...` (the web bri
 | Notifications | `GET /notifications?markAsRead=true` | reading the page marks them read |
 | Settings | `GET` and `POST /users/@me/settings`, `GET` and `POST /activity/settings` | the user settings call replaces everything, so the web app reads first and sends the fields it does not edit back unchanged |
 
-Never used: `/admin/*` (the bridge refuses it; moderation stays in the Juxtaposition UI for now), console routes, device links, onboarding.
+| Profile tabs | `GET /posts?empathy_by=`, `/users/{id}/following` (+ `/followed-communities`), `/followers`, `/friends`, `/users/{id}/activity` | |
+| Topic, related | `GET /posts?topic_tag=`, `GET /communities?category=sub&parent_id=` | |
+| Spoiler mark | `POST /posts/{id}/edit/spoiler` `{is_spoiler}` | own posts |
+| Remove an activity post | `DELETE /activity/{id}` | |
+| Data download | `POST /self/export` | |
+| Linked devices | `POST /device-links/list`, `POST /device-links/revoke` | the codes themselves are in Redis, `internal/linkcodes` |
+
+Never used: `/admin/*` (the bridge refuses it; moderation stays in the Juxtaposition UI, reached through `/admin` here), console routes, onboarding.
 
 ## What was added to the miiverse-api
 
@@ -37,4 +44,3 @@ One thing: `services/web-bridge` (`PN_MIIVERSE_API_WEB_KEY`). With no key it ans
 - Communities in the list have no post count: the list endpoint does not send one, and asking `/stats` for every tile would be one call each. Tiles show followers; the community page shows the post count.
 - A web-only person has no Mii. Pages draw their initial; the console sees the default face the API already stores for them.
 - Console drawings and web drawings share the stored format, but no console has been used to check a web drawing yet (the whole stack is untested on hardware; see the rebuild plan).
-- English only. The web app's own strings are not in the i18n catalogue yet.

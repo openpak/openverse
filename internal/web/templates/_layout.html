@@ -1,5 +1,5 @@
 {{define "head"}}<!DOCTYPE html>
-<html lang="en">
+<html lang="{{.Lang}}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -10,6 +10,11 @@
 <meta property="og:site_name" content="OpenVerse">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{{.Title}} · OpenVerse">
+<meta property="og:url" content="{{.Canonical}}">
+<meta property="og:image" content="{{.Site}}/static/apple-touch-icon.png">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="/manifest.json">
+{{if .OEmbed}}<link rel="alternate" type="application/json+oembed" href="{{.OEmbed}}" title="{{.Title}}">{{end}}
 <meta property="og:description" content="{{.Desc}}">
 <title>{{.Title}} · OpenVerse</title>
 <link rel="icon" href="/static/openverse.svg" type="image/svg+xml">
@@ -42,33 +47,35 @@
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
   <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
   <symbol id="i-eraser" viewBox="0 0 24 24"><path d="m7 21-4-4a2 2 0 0 1 0-2.8l10-10a2 2 0 0 1 2.8 0l5 5a2 2 0 0 1 0 2.8L12 21zM8 11l7 7"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
   <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></symbol>
 </svg>
-<a class="skip" href="#main">Skip to content</a>
+<a class="skip" href="#main">{{t "nav.skip"}}</a>
 <header class="top">
   <div class="wrap">
     <a href="/" class="brand"><img src="/static/openverse.svg" alt="" width="32" height="32">OpenVerse</a>
     {{if not .Onboard}}<nav aria-label="OpenVerse" class="navlinks">
-      {{if .Me}}<a href="/feed" {{if active .Path "/feed"}}aria-current="page"{{end}}>Feed</a>{{end}}
-      <a href="/communities" {{if or (active .Path "/communities") (and (eq .Path "/") (not .Me))}}aria-current="page"{{end}}>Communities</a>
-      {{if .Me}}<a href="/activity" {{if active .Path "/activity"}}aria-current="page"{{end}}>Activity</a>
-      <a href="/notifications" {{if active .Path "/notifications"}}aria-current="page"{{end}}>Notifications<span class="count" data-unread {{if not .Unread}}hidden{{end}}>{{if gt .Unread 99}}99+{{else}}{{.Unread}}{{end}}</span></a>{{end}}
-      <a href="/about" {{if active .Path "/about"}}aria-current="page"{{end}}>About</a>
+      {{if .Me}}<a href="/feed" {{if active .Path "/feed"}}aria-current="page"{{end}}>{{t "nav.feed"}}</a>{{end}}
+      <a href="/communities" {{if or (active .Path "/communities") (and (eq .Path "/") (not .Me))}}aria-current="page"{{end}}>{{t "nav.communities"}}</a>
+      {{if .Me}}<a href="/activity" {{if active .Path "/activity"}}aria-current="page"{{end}}>{{t "nav.activity"}}</a>
+      <a href="/notifications" {{if active .Path "/notifications"}}aria-current="page"{{end}}>{{t "nav.notifications"}}<span class="count" data-unread {{if not .Unread}}hidden{{end}}>{{if gt .Unread 99}}99+{{else}}{{.Unread}}{{end}}</span></a>{{end}}
+      <a href="/about" {{if active .Path "/about"}}aria-current="page"{{end}}>{{t "nav.about"}}</a>
     </nav>{{end}}
     <div class="ml-auto">
       {{if .Me}}
-        {{if not .Onboard}}<a class="btn primary" href="/new">{{template "icon" "plus"}}<span>New post</span></a>{{end}}
+        {{if and (not .Onboard) (not .ReadOnly)}}<a class="btn primary" href="/new">{{template "icon" "plus"}}<span>{{t "nav.newpost"}}</span></a>{{end}}
         <details class="acct" data-menu>
-          <summary class="avatar-btn" aria-label="Account menu: {{.Me.Name}}">{{.Me.Initial}}</summary>
+          <summary class="avatar-btn" aria-label="{{tf "nav.account" .Me.Name}}">{{.Me.Initial}}</summary>
           <div class="acct-menu">
             <p class="acct-name">{{.Me.Name}}</p>
-            <a href="/me">{{template "icon" "user"}}Your profile</a>
-            <a href="/settings">{{template "icon" "gear"}}Settings</a>
-            <a href="/auth/logout">{{template "icon" "logout"}}Sign out</a>
+            <a href="/me">{{template "icon" "user"}}{{t "menu.profile"}}</a>
+            <a href="/settings">{{template "icon" "gear"}}{{t "menu.settings"}}</a>
+            <a href="/devices">{{template "icon" "link"}}{{t "menu.devices"}}</a>
+            <a href="/auth/logout">{{template "icon" "logout"}}{{t "menu.signout"}}</a>
           </div>
         </details>
       {{else if .SignIn}}
-        <a class="btn primary" href="/auth/login?next={{.Next}}">Sign in</a>
+        <a class="btn primary" href="/auth/login?next={{.Next}}">{{t "nav.signin"}}</a>
       {{end}}
     </div>
   </div>
@@ -82,42 +89,42 @@
   <div class="wrap">
     <div>
       <a href="/" class="brand"><img src="/static/openverse.svg" alt="" width="28" height="28">OpenVerse</a>
-      <p class="muted" style="max-width:24rem;font-size:.9rem;margin-top:.75rem">OpenVerse is OpenPak's community space: posts, drawings and conversations about the games you play.</p>
+      <p class="muted" style="max-width:24rem;font-size:.9rem;margin-top:.75rem">{{t "site.desc"}}</p>
     </div>
     <nav aria-labelledby="foot-net"><h2 id="foot-net">OpenPak</h2><ul>
-      <li><a href="{{.OpenPak}}/">Home</a></li>
-      <li><a href="{{.OpenPak}}/titles">Titles</a></li>
-      <li><a href="{{.OpenPak}}/features">Features</a></li>
-      <li><a href="{{.OpenPak}}/status">Status</a></li>
+      <li><a href="{{.OpenPak}}/">{{t "foot.home"}}</a></li>
+      <li><a href="{{.OpenPak}}/titles">{{t "foot.titles"}}</a></li>
+      <li><a href="{{.OpenPak}}/features">{{t "foot.features"}}</a></li>
+      <li><a href="{{.OpenPak}}/status">{{t "foot.status"}}</a></li>
     </ul></nav>
     <nav aria-labelledby="foot-ov"><h2 id="foot-ov">OpenVerse</h2><ul>
-      <li><a href="/communities">Communities</a></li>
-      <li><a href="/about">About</a></li>
+      <li><a href="/communities">{{t "nav.communities"}}</a></li>
+      <li><a href="/about">{{t "nav.about"}}</a></li>
     </ul></nav>
-    <nav aria-labelledby="foot-proj"><h2 id="foot-proj">Project</h2><ul>
-      <li><a href="https://github.com/openpak/openverse" rel="noopener">Source</a></li>
-      <li><a href="{{.OpenPak}}/help">Help</a></li>
-      <li><a href="mailto:{{.Contact}}">Contact</a></li>
+    <nav aria-labelledby="foot-proj"><h2 id="foot-proj">{{t "foot.project"}}</h2><ul>
+      <li><a href="https://github.com/openpak/openverse" rel="noopener">{{t "foot.source"}}</a></li>
+      <li><a href="{{.OpenPak}}/help">{{t "foot.help"}}</a></li>
+      <li><a href="mailto:{{.Contact}}">{{t "foot.contact"}}</a></li>
     </ul></nav>
-    <nav aria-labelledby="foot-legal"><h2 id="foot-legal">Legal</h2><ul>
-      <li><a href="{{.OpenPak}}/terms">Terms</a></li>
-      <li><a href="{{.OpenPak}}/privacy">Privacy</a></li>
-      <li><a href="{{.OpenPak}}/legal">Trademarks and takedowns</a></li>
+    <nav aria-labelledby="foot-legal"><h2 id="foot-legal">{{t "foot.legal"}}</h2><ul>
+      <li><a href="{{.OpenPak}}/terms">{{t "foot.terms"}}</a></li>
+      <li><a href="{{.OpenPak}}/privacy">{{t "foot.privacy"}}</a></li>
+      <li><a href="{{.OpenPak}}/legal">{{t "foot.trademarks"}}</a></li>
     </ul></nav>
-    <div class="foot-bottom"><span><a href="{{.OpenPak}}/">Part of the OpenPak network</a> · © OpenPak · AGPL-3.0 · Console support builds on Juxtaposition by Pretendo Network. Miiverse is a trademark of Nintendo.</span></div>
+    <div class="foot-bottom"><span><a href="{{.OpenPak}}/">{{t "foot.part"}}</a> · {{t "foot.line"}}</span></div>
   </div>
 </footer>
 {{if not .Onboard}}<nav class="tabbar{{if not .Me}} n3{{end}}" aria-label="OpenVerse">
   {{if .Me}}
-  <a href="/feed" {{if active .Path "/feed"}}aria-current="page"{{end}}>{{template "icon" "home"}}Feed</a>
-  <a href="/communities" {{if active .Path "/communities"}}aria-current="page"{{end}}>{{template "icon" "grid"}}Communities</a>
-  <a href="/activity" {{if active .Path "/activity"}}aria-current="page"{{end}}>{{template "icon" "pulse"}}Activity</a>
-  <a href="/notifications" class="tab-bell" {{if active .Path "/notifications"}}aria-current="page"{{end}}>{{template "icon" "bell"}}<span class="count" data-unread {{if not .Unread}}hidden{{end}}>{{if gt .Unread 99}}99+{{else}}{{.Unread}}{{end}}</span>Alerts</a>
-  <a href="/me" {{if or (active .Path "/users") (active .Path "/me") (active .Path "/settings")}}aria-current="page"{{end}}>{{template "icon" "user"}}You</a>
+  <a href="/feed" {{if active .Path "/feed"}}aria-current="page"{{end}}>{{template "icon" "home"}}{{t "nav.feed"}}</a>
+  <a href="/communities" {{if active .Path "/communities"}}aria-current="page"{{end}}>{{template "icon" "grid"}}{{t "nav.communities"}}</a>
+  <a href="/activity" {{if active .Path "/activity"}}aria-current="page"{{end}}>{{template "icon" "pulse"}}{{t "nav.activity"}}</a>
+  <a href="/notifications" class="tab-bell" {{if active .Path "/notifications"}}aria-current="page"{{end}}>{{template "icon" "bell"}}<span class="count" data-unread {{if not .Unread}}hidden{{end}}>{{if gt .Unread 99}}99+{{else}}{{.Unread}}{{end}}</span>{{t "nav.alerts"}}</a>
+  <a href="/me" {{if or (active .Path "/users") (active .Path "/me") (active .Path "/settings")}}aria-current="page"{{end}}>{{template "icon" "user"}}{{t "nav.you"}}</a>
   {{else}}
-  <a href="/communities" {{if or (active .Path "/communities") (eq .Path "/")}}aria-current="page"{{end}}>{{template "icon" "grid"}}Communities</a>
-  <a href="/about" {{if active .Path "/about"}}aria-current="page"{{end}}>{{template "icon" "info"}}About</a>
-  {{if .SignIn}}<a href="/auth/login?next={{.Next}}">{{template "icon" "user"}}Sign in</a>{{end}}
+  <a href="/communities" {{if or (active .Path "/communities") (eq .Path "/")}}aria-current="page"{{end}}>{{template "icon" "grid"}}{{t "nav.communities"}}</a>
+  <a href="/about" {{if active .Path "/about"}}aria-current="page"{{end}}>{{template "icon" "info"}}{{t "nav.about"}}</a>
+  {{if .SignIn}}<a href="/auth/login?next={{.Next}}">{{template "icon" "user"}}{{t "nav.signin"}}</a>{{end}}
   {{end}}
 </nav>{{end}}
 </body>

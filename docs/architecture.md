@@ -22,24 +22,43 @@ consoles ──> Juxtaposition UI and miiverse-api (unchanged)
 
 ## Pages and navigation
 
-The top bar is the only primary navigation: the OpenVerse mark and name, then Feed (signed in), Communities, Activity (signed in), Notifications with an unread count, About; on the right a New post button and the account menu (profile, settings, sign out) or Sign in. There is no sidebar. On phones the top bar keeps the mark, New post and the account chip, and the main sections move to a bottom tab bar, as on openpak.org.
+The top bar is the only primary navigation: the OpenVerse mark and name, then Feed (signed in), Communities, Activity (signed in), Notifications with an unread count, About; on the right a New post button and the account menu (profile, settings, linked devices, sign out) or Sign in. There is no sidebar. On phones the top bar keeps the mark, New post and the account chip, and the main sections move to a bottom tab bar, as on openpak.org.
 
 | Route | Page |
 | --- | --- |
 | `/` | signed in: redirect to `/feed`; signed out: Communities |
-| `/communities`, `/communities/{id}` | tile grid; community header, Follow, Post here, recent or popular posts |
-| `/posts/{id}` | post with replies and the reply box; delete or report |
+| `/communities`, `/communities/{id}`, `/communities/{id}/related` | tile grid (every game has one); community header, Follow, Post here, recent or popular posts; sub-communities |
+| `/posts/{id}` | post with replies and the reply box; delete, spoiler mark or report |
+| `/posts/{id}/oembed.json` | link-preview card for a post |
+| `/topics?topic_tag=` | posts with a topic tag |
 | `/new`, `/new?community=` | community picker; composer (text and a 320x120 drawing) |
-| `/feed`, `/activity`, `/notifications` | following or everyone; opt-in game activity; Yeahs, replies, follows |
-| `/me`, `/users/{id}` | profile and posts |
-| `/settings` | game-activity opt-ins, privacy, notification choices, account links |
-| `/welcome` | community rules, one card, two buttons |
+| `/feed`, `/activity`, `/notifications` | following or everyone; opt-in game activity (Everyone, Following); Yeahs, replies, follows |
+| `/me`, `/users/{id}`, `/users/{id}/{yeahs,following,followers,friends,activity}` | profile with its tabs |
+| `/settings` | game-activity opt-ins, privacy, notification choices, account links, data download (`/users/downloadUserData.json`) |
+| `/devices` (+ `/devices/check`, `/approve`, `/revoke`) | Linked devices: link code, device list, Remove. Account menu only |
+| `/welcome`, `/welcome/off` | community rules, one card, two buttons; the page a parent-disabled account is sent to |
 | `/about` | what OpenVerse is, the AGPL credit |
 | `/auth/login`, `/auth/callback`, `/auth/logout` | openpak.org single sign-on; sign-out ends only this site's session and returns to `/about` |
-| `/cdn/...` | read-only proxy for pictures from the API's media store |
+| `/cdn/...` | read-only proxy for pictures from the API's media store (`paintings/ screenshots/ icons/ headers/ mii/`) |
 | `/notifications/count` | JSON for the badge |
+| `/healthz`, `/robots.txt`, `/manifest.json`, `/favicon.ico`, `/static/...` | housekeeping |
+| `/admin/...`, `/login/callback` | moderation: proxied unchanged to the Juxtaposition UI (`OPENVERSE_LEGACY_URL`) |
+
+Addresses of the Juxtaposition web UI keep working as permanent redirects (`/titles`, `/titles/{id}`, `/users/me`, `/activity/settings`, `/feed/people`, `/news/...`, `/login`, `/logout`, ...); the post, community and profile ids are the same.
 
 Yeah, follow, reply, post, delete and report are plain HTML forms that redirect back; a little script turns Yeah into a fetch and adds copy-link, the account menu, the badge poll and the drawing pad. Every page works without it.
+
+## Languages
+
+English is the source. Spanish, French and German are translated; every other language falls back to English. The language is `?lang=xx` (remembered in a cookie), else Accept-Language. Catalogues are flat JSON in `internal/i18n/locales/`; a plural is `<key>.one` and `<key>.other`. A test checks that es, fr and de have every key with the same placeholders, that every key a template or handler asks for exists, and that no page in any language shows a raw key.
+
+## Parental levels
+
+The decision is the miiverse-api's, through the same parental lookup it makes for every console and web request (`web-identity/access.ts`): none (OpenVerse off), read, or read + post, failing closed when the parental core cannot be reached. `/self` reports `openverseOff` and `readOnly`. Off: every page but `/welcome/off` and sign-out redirects there. Read: every form that writes is hidden (Yeah, follow, reply, New post, delete, report, settings) and a forced write is refused with 403 here and by the API. Read + post is full access.
+
+## Linked devices
+
+The page uses the miiverse-api `deviceLinks` routes through the bridge (`list`, `revoke`) and the Redis link codes the Lite service writes (`verse-lite:code:<CODE>`), see `internal/linkcodes`. Every form carries a token derived from the session; checking a code is limited to ten tries a minute per account.
 
 ## Sign-in and session
 
@@ -58,7 +77,8 @@ The pad is 320x120, black and white, with the console's two pens and an eraser. 
 
 ## Not done yet
 
-- English only; the web catalogue is a later step.
+- Languages beyond en, es, fr and de fall back to English.
+- Not carried over from the Juxtaposition web UI: console friend requests (accepted on the console), attaching a screenshot (web posts are text and drawings), and the `/images` paths of old notification rows.
 - No moderation UI here (the Juxtaposition admin pages still do that).
 - Mobile phone and desktop layouts follow openpak.org; the app (Flutter) is phase 3.
 - The notification badge is rendered on every page from `Store.UnreadNotifications` with a two-second budget and refreshed by polling once a minute.
