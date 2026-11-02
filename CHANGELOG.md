@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.4 — 2026-11-02
+
+- Popular now appears only once at least three communities have posts from the last seven days.
+
 ## v0.1.3 — 2026-11-02
 
 - Communities rebuilt for browsing: Popular now (busiest in the last seven days), Your communities, General rooms pinned apart from the games, console pills (only consoles that have games), a real search field, and the games sorted by activity then name, 30 at a time with Show more. Tiles show the game's consoles instead of "No posts yet"; the community art is no longer lazy-loaded. The composer's community picker is the same browser.

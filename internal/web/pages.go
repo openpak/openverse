@@ -152,8 +152,8 @@ func (s *Site) browse(r *http.Request, base, link string, top bool) (browseData,
 		if me := s.meView(r); me != nil {
 			viewer = me.ID
 		}
-		if pop, err := s.store.Popular(r.Context(), viewer, 10); err == nil {
-			d.Popular = pop
+		if pop, err := s.store.Popular(r.Context(), viewer, 10); err == nil && len(pop) >= 3 {
+			d.Popular = pop // one or two entries look thin: the section waits for three
 		}
 		if me := s.meView(r); me != nil {
 			if v := s.access(r.Context(), *me); len(v.FollowedCommunities) > 0 {
