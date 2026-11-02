@@ -9,9 +9,9 @@
 </nav>{{end}}{{end}}
 
 {{define "community-tile"}}<a class="card com-tile" href="{{.Href}}">
-  <span class="com-icon">{{if .C.Icon}}<img src="{{.C.Icon}}" alt="" loading="lazy" width="64" height="64">{{else}}<span aria-hidden="true">{{initial .C.Name}}</span>{{end}}</span>
+  <span class="com-icon">{{if .C.Icon}}<img src="{{.C.Icon}}" alt="" width="64" height="64">{{else}}<span aria-hidden="true">{{initial .C.Name}}</span>{{end}}</span>
   <span class="com-name">{{.C.Name}}</span>
-  <span class="com-sub">{{.Sub}}</span>
+  {{if .Sub}}<span class="com-sub">{{.Sub}}</span>{{end}}
 </a>{{end}}
 
 {{/* One post card, everywhere: feed, community, profile, thread. */}}
@@ -62,3 +62,29 @@
 </li>
 {{end}}</ul>
 {{else}}{{template "empty" (dict "Icon" "pulse" "Title" (t "activity.empty_h") "Text" (t "activity.empty_p"))}}{{end}}{{end}}
+
+{{define "tiles"}}<ul class="tiles com-grid{{if .Small}} rooms{{end}}">
+{{$link := .Link}}{{range .Items}}<li>{{template "community-tile" (dict "C" . "Href" (printf $link .ID) "Sub" (commSub .))}}</li>
+{{end}}</ul>{{end}}
+
+{{define "browse"}}
+{{if .Rooms}}<section class="com-sec" aria-labelledby="sec-rooms"><h2 id="sec-rooms">{{t "communities.rooms"}}</h2>{{template "tiles" (dict "Items" .Rooms "Link" .Link "Small" true)}}</section>{{end}}
+<section class="com-sec" id="games" aria-labelledby="sec-games">
+  <h2 id="sec-games">{{t "communities.games"}}</h2>
+  <form class="com-search" method="get" action="{{.Base}}#games" role="search">
+    <label class="sr" for="com-find">{{t "communities.filter"}}</label>
+    <input id="com-find" name="q" type="search" class="field" value="{{.Query}}" placeholder="{{t "communities.filter"}}" autocomplete="off">
+    {{if .Console}}<input type="hidden" name="console" value="{{.Console}}">{{end}}
+    <button type="submit" class="btn">{{t "communities.search"}}</button>
+  </form>
+  {{if .Consoles}}<nav class="pills" aria-label="{{t "communities.consoles"}}">
+    <a href="{{.Base}}{{if .Query}}?q={{.Query | urlq}}{{end}}#games" {{if not .Console}}aria-current="page"{{end}}>{{t "communities.all"}}</a>
+    {{$b := .Base}}{{$q := .Query}}{{$cur := .Console}}{{range .Consoles}}<a href="{{$b}}?console={{. | urlq}}{{if $q}}&amp;q={{$q | urlq}}{{end}}#games" {{if eq . $cur}}aria-current="page"{{end}}>{{.}}</a>{{end}}
+  </nav>{{end}}
+  {{if .Games}}
+  {{template "tiles" (dict "Items" .Games "Link" .Link)}}
+  <p class="com-count muted">{{tf "communities.showing" (len .Games) .Matches}}</p>
+  {{if .More}}<p class="com-more"><a class="btn" href="{{.More}}">{{t "communities.more"}}</a></p>{{end}}
+  {{else}}{{template "empty" (dict "Icon" "grid" "Title" (t "communities.nomatch_h") "Text" (t "communities.nomatch"))}}{{end}}
+</section>
+{{end}}

@@ -22,6 +22,7 @@ import (
 
 	"github.com/openpak/openverse/internal/i18n"
 	"github.com/openpak/openverse/internal/linkcodes"
+	"github.com/openpak/openverse/internal/names"
 	"github.com/openpak/openverse/internal/store"
 )
 
@@ -46,6 +47,7 @@ type Site struct {
 	codes  linkcodes.KV
 	legacy http.Handler // the Juxtaposition UI, for /admin; nil when not configured
 	tries  tryLimiter
+	names  *names.Book
 
 	accMu sync.Mutex
 	acc   map[string]accessEntry
@@ -64,8 +66,11 @@ func New(cfg Config, st store.Store) (*Site, error) {
 	s := &Site{cfg: cfg, store: st, sso: &http.Client{Timeout: 10 * time.Second}, cdn: &http.Client{Timeout: 10 * time.Second},
 		cat: i18n.Load(), asset: strconv.FormatInt(time.Now().Unix(), 36), acc: map[string]accessEntry{}}
 	if cfg.RedisAddr != "" {
-		s.codes = &linkcodes.Redis{Addr: cfg.RedisAddr, Password: cfg.RedisPass}
+		r := &linkcodes.Redis{Addr: cfg.RedisAddr, Password: cfg.RedisPass}
+		s.codes = r
+		s.names = names.New(r)
 	} else if cfg.Demo {
+		s.names = names.New(names.NewMemory())
 		mem := linkcodes.NewMemory()
 		_ = mem.Set(context.Background(), "verse-lite:code:ABC234", `{"deviceClass":"wii","secretHash":"x","ip":"127.0.0.1","createdAt":`+strconv.FormatInt(time.Now().UnixMilli(), 10)+`,"accountId":null}`, 600)
 		s.codes = mem
@@ -83,6 +88,7 @@ func New(cfg Config, st store.Store) (*Site, error) {
 			},
 		}
 	}
+	s.store = &namedStore{Store: st, book: s.names}
 	layout, err := templateFS.ReadFile("templates/_layout.html")
 	if err != nil {
 		return nil, err
@@ -111,6 +117,7 @@ func New(cfg Config, st store.Store) (*Site, error) {
 			"add":          func(a, b int) int { return a + b },
 			"sub":          func(a, b int) int { return a - b },
 			"count":        count,
+			"urlq":         url.QueryEscape,
 			"dict":         dict,
 			"catName":      func(id string) string { return catName(tr, id) },
 			"commSub":      func(c store.Community) string { return commSub(tr, c) },
@@ -573,15 +580,20 @@ func catName(tr i18n.T, id string) string {
 	return id
 }
 
-// commSub is the line under a community tile: followers, and posts when the count is known.
+// commSub is the line under a community tile: the consoles of a game, then its posts once it has
+// some; a room says how many followers it has. A quiet game does not announce that it is quiet.
 func commSub(tr i18n.T, c store.Community) string {
-	if c.Posts == 0 && c.Followers == 0 {
-		return tr.Str("n.quiet")
+	var parts []string
+	if len(c.Consoles) > 0 {
+		parts = append(parts, strings.Join(c.Consoles, " · "))
 	}
-	if c.Posts >= 0 {
-		return tr.N("n.followers", c.Followers) + " · " + tr.N("n.posts", c.Posts)
+	switch {
+	case c.Posts > 0:
+		parts = append(parts, tr.N("n.posts", c.Posts))
+	case len(parts) == 0 && c.Followers > 0:
+		parts = append(parts, tr.N("n.followers", c.Followers))
 	}
-	return tr.N("n.followers", c.Followers)
+	return strings.Join(parts, " · ")
 }
 
 // activityText is the sentence after the person's name for an activity post. A category this build

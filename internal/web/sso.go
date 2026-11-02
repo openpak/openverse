@@ -107,6 +107,7 @@ func (s *Site) authCallback(w http.ResponseWriter, r *http.Request) {
 		s.signInFailed(w, r, http.StatusBadGateway)
 		return
 	}
+	s.names.Put(r.Context(), id.ID, name)
 	s.setSession(w, Me{Account: acct, Name: name, ID: id.ID, Rules: id.RulesAccepted})
 	http.Redirect(w, r, localPath(f.Next), http.StatusSeeOther)
 }

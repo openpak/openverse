@@ -69,6 +69,8 @@ type Community struct {
 	Open        bool
 	Following   bool
 	HasRelated  bool
+	Consoles    []string // Switch, Wii U, 3DS, Wii, DS ...; empty for a general room
+	General     bool     // Announcements, Help, Drawing and Art ...: a room, not a game
 }
 
 // Post is a post or a reply.
@@ -182,6 +184,9 @@ type Store interface {
 
 	// Communities
 	Communities(ctx context.Context, p Page) ([]Community, int, error)
+	// Popular is the busiest communities of the last seven days. The feed it reads needs a signed-in
+	// viewer; a guest (viewer "") gets the last result a signed-in visit produced.
+	Popular(ctx context.Context, viewer string, n int) ([]Community, error)
 	Community(ctx context.Context, viewer, id string) (Community, error)
 	CommunityPosts(ctx context.Context, viewer, id string, popular bool, p Page) ([]Post, error)
 	FollowCommunity(ctx context.Context, viewer, id string, follow bool) (int, error)

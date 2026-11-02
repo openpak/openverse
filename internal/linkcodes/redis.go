@@ -72,6 +72,18 @@ func readReply(br *bufio.Reader) (any, error) {
 		return nil, errors.New("redis: " + line[1:])
 	case ':':
 		return strconv.ParseInt(line[1:], 10, 64)
+	case '*':
+		n, err := strconv.Atoi(line[1:])
+		if err != nil || n < 0 {
+			return nil, err
+		}
+		out := make([]any, n)
+		for i := range out {
+			if out[i], err = readReply(br); err != nil {
+				return nil, err
+			}
+		}
+		return out, nil
 	case '$':
 		n, err := strconv.Atoi(line[1:])
 		if err != nil {
@@ -119,3 +131,29 @@ func (m *Memory) Get(_ context.Context, k string) (string, bool, error) {
 
 // Set implements KV.
 func (m *Memory) Set(_ context.Context, k, v string, _ int) error { m.m[k] = v; return nil }
+
+// HSet sets one field of a hash.
+func (r *Redis) HSet(ctx context.Context, key, field, value string) error {
+	_, err := r.do(ctx, "HSET", key, field, value)
+	return err
+}
+
+// HMGet reads fields of a hash; a missing field is absent from the result.
+func (r *Redis) HMGet(ctx context.Context, key string, fields []string) (map[string]string, error) {
+	if len(fields) == 0 {
+		return map[string]string{}, nil
+	}
+	v, err := r.do(ctx, append([]string{"HMGET", key}, fields...)...)
+	if err != nil {
+		return nil, err
+	}
+	out := map[string]string{}
+	if arr, ok := v.([]any); ok {
+		for i, x := range arr {
+			if s, ok := x.(string); ok && i < len(fields) {
+				out[fields[i]] = s
+			}
+		}
+	}
+	return out, nil
+}

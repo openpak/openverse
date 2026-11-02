@@ -76,6 +76,17 @@ func (c *Client) UnreadNotifications(ctx context.Context, viewer string) (int, e
 // community's /stats, read in the background and cached (see counts.go), so a tile shows its
 // posts as soon as the first sweep has finished.
 func (c *Client) Communities(ctx context.Context, p store.Page) ([]store.Community, int, error) {
+	if list, total, ok := c.list.get(p); ok {
+		return list, total, nil
+	}
+	list, total, err := c.communities(ctx, p)
+	if err == nil {
+		c.list.put(p, list, total)
+	}
+	return list, total, err
+}
+
+func (c *Client) communities(ctx context.Context, p store.Page) ([]store.Community, int, error) {
 	// The API answers at most 90 at a time, so a longer window is read in pieces.
 	const chunk = 90
 	want := p.Limit

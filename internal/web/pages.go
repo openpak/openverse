@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -55,19 +56,134 @@ func (s *Site) home(w http.ResponseWriter, r *http.Request) {
 	s.communities(w, r)
 }
 
-type communitiesData struct {
-	Communities []store.Community
-	Total       int
-	Welcome     bool // a visitor who is not signed in gets a short invitation above the grid
+// browseData is the community browser: pinned rooms, console pills, a search field and the games.
+// /communities and the community picker of the composer share it.
+type browseData struct {
+	Base      string // /communities or /new
+	Link      string // tile link pattern, %s is the community id
+	Query     string
+	Console   string
+	Consoles  []string
+	Popular   []store.Community // only on /communities, unfiltered
+	Yours     []store.Community // signed in, unfiltered
+	Rooms     []store.Community
+	Games     []store.Community
+	Matches   int // games after the filters
+	Total     int // all communities
+	Welcome   bool
+	More      string // "Show more" address, "" when everything is shown
+	Filtering bool
+}
+
+const browseStep = 30
+
+var consoleOrder = []string{"Switch", "Wii U", "3DS", "Wii", "DS", "PS3", "Xbox 360", "Xbox", "PS2", "PSP", "Vita"}
+
+func (s *Site) browse(r *http.Request, base, link string, top bool) (browseData, error) {
+	list, total, err := s.store.Communities(r.Context(), store.Page{Limit: 600})
+	if err != nil {
+		return browseData{}, err
+	}
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	if utf8.RuneCountInString(q) > 60 {
+		q = string([]rune(q)[:60])
+	}
+	d := browseData{Base: base, Link: link, Query: q, Total: total, Welcome: s.meView(r) == nil, Filtering: false}
+	have := map[string]bool{}
+	for _, c := range list {
+		for _, k := range c.Consoles {
+			have[k] = true
+		}
+	}
+	for _, k := range consoleOrder {
+		if have[k] {
+			d.Consoles = append(d.Consoles, k)
+			delete(have, k)
+		}
+	}
+	var rest []string
+	for k := range have {
+		rest = append(rest, k)
+	}
+	sort.Strings(rest)
+	d.Consoles = append(d.Consoles, rest...)
+	if c := r.URL.Query().Get("console"); c != "" {
+		for _, k := range d.Consoles {
+			if k == c {
+				d.Console = c
+			}
+		}
+	}
+	d.Filtering = d.Console != "" || q != ""
+	match := func(c store.Community) bool {
+		return q == "" || strings.Contains(strings.ToLower(c.Name), strings.ToLower(q))
+	}
+	var games []store.Community
+	for _, c := range list {
+		switch {
+		case c.General:
+			if d.Console == "" && match(c) {
+				d.Rooms = append(d.Rooms, c)
+			}
+		case match(c) && (d.Console == "" || hasConsole(c, d.Console)):
+			games = append(games, c)
+		}
+	}
+	d.Matches = len(games)
+	show := browseStep
+	if n, err := strconv.Atoi(r.URL.Query().Get("show")); err == nil && n > browseStep && n <= 1000 {
+		show = n
+	}
+	if show < len(games) {
+		more := url.Values{}
+		if d.Console != "" {
+			more.Set("console", d.Console)
+		}
+		if q != "" {
+			more.Set("q", q)
+		}
+		more.Set("show", strconv.Itoa(show+browseStep))
+		d.More = base + "?" + more.Encode() + "#games"
+		games = games[:show]
+	}
+	d.Games = games
+	if top && !d.Filtering {
+		viewer := ""
+		if me := s.meView(r); me != nil {
+			viewer = me.ID
+		}
+		if pop, err := s.store.Popular(r.Context(), viewer, 10); err == nil {
+			d.Popular = pop
+		}
+		if me := s.meView(r); me != nil {
+			if v := s.access(r.Context(), *me); len(v.FollowedCommunities) > 0 {
+				for _, c := range list {
+					if v.FollowedCommunities[c.ID] {
+						d.Yours = append(d.Yours, c)
+					}
+				}
+			}
+		}
+	}
+	return d, nil
+}
+
+func hasConsole(c store.Community, k string) bool {
+	for _, x := range c.Consoles {
+		if x == k {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *Site) communities(w http.ResponseWriter, r *http.Request) {
-	list, total, err := s.store.Communities(r.Context(), store.Page{Limit: 600})
+	d, err := s.browse(r, "/communities", "/communities/%s", true)
 	if err != nil {
 		s.fail(w, r, err)
 		return
 	}
-	s.renderKey(w, r, http.StatusOK, "communities", "communities.title", communitiesData{Communities: list, Total: total, Welcome: s.meView(r) == nil})
+	s.renderKey(w, r, http.StatusOK, "communities", "communities.title", d)
 }
 
 type communityData struct {
@@ -254,7 +370,7 @@ func (s *Site) notificationCount(w http.ResponseWriter, r *http.Request) {
 
 type composeData struct {
 	Community *store.Community
-	Choices   []store.Community // set when no community was picked yet
+	Browse    *browseData // set when no community was picked yet
 	ReadOnly  bool
 	Error     string
 	Body      string
@@ -276,12 +392,12 @@ func (s *Site) compose(w http.ResponseWriter, r *http.Request) {
 		}
 		d.Community = &com
 	} else {
-		list, _, err := s.store.Communities(r.Context(), store.Page{Limit: 600})
+		bd, err := s.browse(r, "/new", "/new?community=%s", false)
 		if err != nil {
 			s.fail(w, r, err)
 			return
 		}
-		d.Choices = list
+		d.Browse = &bd
 	}
 	s.renderKey(w, r, http.StatusOK, "compose", "nav.newpost", d)
 }

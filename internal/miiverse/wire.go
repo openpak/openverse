@@ -2,6 +2,7 @@ package miiverse
 
 import (
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -25,6 +26,7 @@ type wireCommunity struct {
 	Followers   int       `json:"followerCount"`
 	Icons       wireIcons `json:"iconImagePaths"`
 	Header      string    `json:"wupHeaderImagePath"`
+	Platform    string    `json:"platform"`
 	Perm        struct {
 		Open bool `json:"open"`
 	} `json:"permissions"`
@@ -118,8 +120,30 @@ func avatarFor(pid int64, given string) string {
 }
 
 func (w wireCommunity) toStore() store.Community {
-	return store.Community{ID: w.ID, Name: w.Name, Description: w.Description, Followers: w.Followers, Posts: -1,
+	c := store.Community{ID: w.ID, Name: w.Name, Description: w.Description, Followers: w.Followers, Posts: -1,
 		Icon: mediaKey(w.Icons.S128), Banner: mediaKey(w.Header), Open: w.Perm.Open}
+	c.Consoles = consolesOf(w.Description, w.Platform)
+	c.General = len(c.Consoles) == 0
+	return c
+}
+
+var onConsole = regexp.MustCompile(` on ([^.]+)\.(?: |$)`)
+
+// consolesOf reads the consoles a game community is for from its description ("Talk about X on Wii
+// and DS. ..."), which the community sync writes. A room has none ("Tell us what works...").
+func consolesOf(desc, platform string) []string {
+	m := onConsole.FindStringSubmatch(desc)
+	if m == nil {
+		return nil
+	}
+	var out []string
+	for _, part := range strings.Split(m[1], " and ") {
+		switch p := strings.TrimSpace(part); p {
+		case "Switch", "Wii U", "3DS", "Wii", "DS", "PS3", "Xbox 360", "Xbox", "PSP", "Vita", "PS2":
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 func (w wirePost) toStore(viewer string) store.Post {

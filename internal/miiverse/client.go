@@ -29,7 +29,9 @@ type Client struct {
 	key  string
 	http *http.Client
 
-	counts countCache
+	counts  countCache
+	popular popularCache
+	list    listCache
 }
 
 // New builds a client. base is the miiverse-api HTTP address on the private network.

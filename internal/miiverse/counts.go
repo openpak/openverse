@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"sync"
 	"time"
+
+	"github.com/openpak/openverse/internal/store"
 )
 
 // The community list endpoint sends no post count and /stats answers for one community at a time,
@@ -91,4 +93,28 @@ func (c *Client) sweep(ids []string, done chan struct{}) {
 	cc.running = nil
 	cc.mu.Unlock()
 	close(done)
+}
+
+// listCache keeps the sorted community list for a minute: it costs five API calls to build.
+type listCache struct {
+	mu    sync.Mutex
+	at    time.Time
+	key   store.Page
+	list  []store.Community
+	total int
+}
+
+func (l *listCache) get(p store.Page) ([]store.Community, int, bool) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.list == nil || l.key != p || time.Since(l.at) > time.Minute {
+		return nil, 0, false
+	}
+	return append([]store.Community(nil), l.list...), l.total, true
+}
+
+func (l *listCache) put(p store.Page, list []store.Community, total int) {
+	l.mu.Lock()
+	l.at, l.key, l.list, l.total = time.Now(), p, append([]store.Community(nil), list...), total
+	l.mu.Unlock()
 }

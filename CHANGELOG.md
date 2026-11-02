@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.3 — 2026-11-02
+
+- Communities rebuilt for browsing: Popular now (busiest in the last seven days), Your communities, General rooms pinned apart from the games, console pills (only consoles that have games), a real search field, and the games sorted by activity then name, 30 at a time with Show more. Tiles show the game's consoles instead of "No posts yet"; the community art is no longer lazy-loaded. The composer's community picker is the same browser.
+- Every author, actor and listed person shows their whole OpenPak display name (recorded at each web sign-in, read in one cached batch); people who never signed in on the web keep the console name.
+
 ## v0.1.2 — 2026-11-02
 
 - Communities: busiest first, then A to Z; a quiet game says so instead of "0 followers · 0 posts". Your own profile shows your whole account name.

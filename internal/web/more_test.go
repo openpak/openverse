@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -330,5 +331,57 @@ func TestAdminGoesToTheJuxtapositionUI(t *testing.T) {
 	// With no legacy UI configured there is no /admin at all.
 	if w := do(t, newSite(t), "GET", "/admin", nil); w.Code != 404 {
 		t.Errorf("no legacy: %d", w.Code)
+	}
+}
+
+func TestCommunityBrowser(t *testing.T) {
+	s := newSite(t)
+	body := do(t, s, "GET", "/communities", nil).Body.String()
+	for _, want := range []string{"General rooms", "All games", "Popular now", `class="pills"`, ">Switch<", ">Wii U<", ">3DS<", `role="search"`, "Announcements"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("browser lacks %q", want)
+		}
+	}
+	if strings.Contains(body, "No posts yet") || strings.Contains(body, `loading="lazy" width="64"`) {
+		t.Error("tiles must not announce quiet games or lazy-load their art")
+	}
+	games := body[strings.Index(body, `id="games"`):]
+	if strings.Contains(games, "Announcements") || strings.Contains(games, "Help and Questions") {
+		t.Error("rooms are pinned apart from the games")
+	}
+	// A console filter keeps only that console's games and drops the rooms.
+	sw := do(t, s, "GET", "/communities?console=Switch", nil).Body.String()
+	if !strings.Contains(sw, "Mario Kart 8 Deluxe") || strings.Contains(sw, "Fire Emblem Awakening") || strings.Contains(sw, "General rooms") {
+		t.Error("console filter")
+	}
+	// Search.
+	if q := do(t, s, "GET", "/communities?q=zelda", nil).Body.String(); !strings.Contains(q, "Breath of the Wild") || strings.Contains(q, "Splatoon<") {
+		t.Error("search")
+	}
+	if q := do(t, s, "GET", "/communities?q=nothingmatchesthis", nil).Body.String(); !strings.Contains(q, "No game found") {
+		t.Error("empty search state")
+	}
+	// Signed in: Your communities.
+	if in := do(t, s, "GET", "/communities", nil, signIn(t, s, "")).Body.String(); !strings.Contains(in, "Your communities") {
+		t.Error("followed communities row")
+	}
+	// The composer picker is the same browser.
+	if np := do(t, s, "GET", "/new", nil, signIn(t, s, "")).Body.String(); !strings.Contains(np, `role="search"`) || !strings.Contains(np, "/new?community=") {
+		t.Error("composer picker")
+	}
+}
+
+func TestEveryAuthorShowsTheWholeName(t *testing.T) {
+	s := newSite(t)
+	s.names.Put(context.Background(), "1000000005", "Mika Kobayashi-Longname")
+	c := signIn(t, s, "")
+	for _, p := range []string{"/posts/p101", "/communities/101", "/users/1000000005", "/notifications", "/feed?scope=everyone"} {
+		if body := do(t, s, "GET", p, nil, c).Body.String(); !strings.Contains(body, "Mika Kobayashi-Longname") {
+			t.Errorf("%s: whole name missing", p)
+		}
+	}
+	// Someone with no recorded name keeps the console name.
+	if body := do(t, s, "GET", "/posts/p101", nil, c).Body.String(); !strings.Contains(body, "Ren") {
+		t.Error("console name kept")
 	}
 }

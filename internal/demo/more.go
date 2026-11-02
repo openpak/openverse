@@ -96,3 +96,15 @@ func (s *Store) RevokeDevice(_ context.Context, _, id string) error {
 	}
 	return store.ErrNotFound
 }
+
+func (s *Store) Popular(_ context.Context, _ string, n int) ([]store.Community, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var out []store.Community
+	for _, c := range s.communities {
+		if !c.General && c.Posts > 1500 && len(out) < n {
+			out = append(out, c)
+		}
+	}
+	return out, nil
+}

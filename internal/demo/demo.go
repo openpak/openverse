@@ -65,8 +65,23 @@ func (s *Store) seed() {
 		s.people[p.id] = p
 	}
 	com := func(id, name, desc string, followers, posts int) {
-		s.communities = append(s.communities, store.Community{ID: id, Name: name, Description: desc, Followers: followers, Posts: posts,
-			Icon: "/cdn/icons/" + id + "/128.png", Banner: "/cdn/headers/" + id + "/wup.png", Open: true})
+		c := store.Community{ID: id, Name: name, Description: desc, Followers: followers, Posts: posts,
+			Icon: "/cdn/icons/" + id + "/128.png", Banner: "/cdn/headers/" + id + "/wup.png", Open: true}
+		switch id {
+		case "101", "106":
+			c.Consoles = []string{"Wii U"}
+		case "102":
+			c.Consoles = []string{"Wii U", "Switch"}
+		case "103", "104", "105":
+			c.Consoles = []string{"Switch"}
+		case "107", "109", "110", "111":
+			c.Consoles = []string{"3DS"}
+		case "108":
+			c.Consoles = []string{"Wii"}
+		default:
+			c.General = true
+		}
+		s.communities = append(s.communities, c)
 	}
 	com("101", "Super Mario Maker", "Share courses, tips and clears. Post your course ID and tell people what to look out for.", 4210, 1830)
 	com("102", "Splatoon", "Turf wars, Splatfest chatter and loadout talk.", 3560, 2204)

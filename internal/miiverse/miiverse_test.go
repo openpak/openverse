@@ -159,3 +159,18 @@ func TestCommunitiesAreReadNinetyAtATime(t *testing.T) {
 		}
 	}
 }
+
+func TestConsolesComeFromTheDescription(t *testing.T) {
+	for desc, want := range map[string]string{
+		"Talk about Zelda on Wii. Share tips.":          "Wii",
+		"Talk about X on Wii U and Switch. Share tips.": "Wii U,Switch",
+		"Talk about Y on Wii and DS. Share tips.":       "Wii,DS",
+		"Talk about Z on 3DS. Share tips.":              "3DS",
+		"Tell us what works and what does not.":         "",
+		"Everything about Switch games.":                "",
+	} {
+		if got := strings.Join(consolesOf(desc, ""), ","); got != want {
+			t.Errorf("%q -> %q, want %q", desc, got, want)
+		}
+	}
+}
