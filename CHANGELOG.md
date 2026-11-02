@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.1.0 — 2026-11-02
 
 - Switch-over release: everything verse.openpak.org's web did is here. Linked devices (account menu, link code, list, Remove), parental levels (off, read, read + post, failing closed), profile tabs (Yeahs, Following, Followers, Friends, Activity), topics, related communities, spoiler mark, activity removal, data download, oEmbed, manifest, redirects from the old Juxtaposition web addresses, `/admin` proxied to the Juxtaposition UI.
 - Spanish, French and German; other languages fall back to English. A locale test covers key parity, placeholders and raw keys.
