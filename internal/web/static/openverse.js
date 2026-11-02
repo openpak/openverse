@@ -153,3 +153,6 @@
     });
   });
 })();
+
+// Keep the chosen game chip in view when the chip row scrolls sideways on phones.
+document.querySelector('.pills.games [aria-current]')?.scrollIntoView({ block: 'nearest', inline: 'center' });

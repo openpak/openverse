@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.1 — 2026-11-02
+
+- Phones: a family's game chips sit in one row that scrolls sideways instead of stacking into a wall (Pokémon has 13 games), and the chosen game scrolls into view.
+
 ## v0.2.0 — 2026-11-02
 
 - Franchise families. The communities browser lists one tile per franchise (Mario Kart, Splatoon, Zelda ...) instead of every game; a family page shows the posts of all its games with a chip per game ("All" plus the game and its console) and keeps the game's own community underneath. A game that stands alone behaves as before, with no chip row.

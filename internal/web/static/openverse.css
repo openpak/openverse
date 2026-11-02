@@ -320,5 +320,11 @@ fieldset.plain[disabled] { opacity: .6; }
 /* Franchise pages: the game chips sit under the header, wrapping on a phone; the composer's game picker */
 .pills.games { margin-top: .25rem; }
 .pills.games a { min-height: 36px; height: auto; padding: 6px 14px; line-height: 1.25; text-align: left; }
+@media (max-width: 47.99rem) {
+  /* one row that scrolls sideways; a family like Pokémon has 13 games */
+  .pills.games { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -20px; padding: 2px 20px 6px; scroll-padding-inline: 20px; }
+  .pills.games::-webkit-scrollbar { display: none; }
+  .pills.games a { flex: none; white-space: nowrap; }
+}
 .game-label { display: block; margin: 0 0 6px; font-family: var(--font-ui); font-weight: 700; font-size: .9rem; color: var(--ink-2); }
 .game-pick { width: 100%; min-height: 46px; margin-bottom: 1rem; font: inherit; font-size: max(1rem, 16px); color: var(--ink); background: var(--raised); border: 1px solid var(--line-2); border-radius: 12px; padding: .5rem .9rem; box-sizing: border-box; }
