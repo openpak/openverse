@@ -102,7 +102,7 @@ func (s *Store) Popular(_ context.Context, _ string, n int) ([]store.Community, 
 	defer s.mu.Unlock()
 	var out []store.Community
 	for _, c := range s.communities {
-		if !c.General && c.Posts > 1500 && len(out) < n {
+		if !c.General && c.Parent == "" && c.Posts > 1500 && len(out) < n {
 			out = append(out, c)
 		}
 	}

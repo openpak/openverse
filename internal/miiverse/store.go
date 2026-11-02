@@ -124,6 +124,7 @@ func (c *Client) communities(ctx context.Context, p store.Page) ([]store.Communi
 		}
 		list = append(list, com)
 	}
+	list = c.groupFamilies(ctx, list)
 	// Busy games first, then the rest A to Z (the API's own order is arbitrary).
 	sort.SliceStable(list, func(i, j int) bool {
 		a, b := list[i], list[j]
@@ -145,6 +146,13 @@ func (c *Client) Community(ctx context.Context, viewer, id string) (store.Commun
 		return store.Community{}, err
 	}
 	com := w.toStore()
+	if fam, ok := c.familyOf(ctx, id); ok {
+		com.Family, com.General, com.Members, com.Consoles = true, false, fam.Members, fam.Consoles
+	} else if com.Parent != "" {
+		if fam, ok := c.familyOf(ctx, com.Parent); ok {
+			com.ParentName = fam.Name
+		}
+	}
 	var st struct {
 		TotalPosts int `json:"totalPosts"`
 	}

@@ -71,6 +71,15 @@ type Community struct {
 	HasRelated  bool
 	Consoles    []string // Switch, Wii U, 3DS, Wii, DS ...; empty for a general room
 	General     bool     // Announcements, Help, Drawing and Art ...: a room, not a game
+
+	// Families. A franchise (Mario Kart) is one page with each game kept as its own community under
+	// it. A family has Family set, its games in Members (A to Z) and no posts of its own: its feed
+	// is the games' together. A game under a family has Parent (the family's id) and ParentName.
+	// Neither is set for a game that stands alone.
+	Family     bool
+	Members    []Community
+	Parent     string
+	ParentName string
 }
 
 // Post is a post or a reply.

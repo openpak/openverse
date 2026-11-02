@@ -24,7 +24,7 @@ func doLang(t *testing.T, s *Site, lang, target string, cookies ...*http.Cookie)
 	return w
 }
 
-var pagesToCheck = []string{"/communities", "/communities/101", "/communities/102/related", "/feed", "/feed?scope=everyone", "/activity", "/activity?scope=following",
+var pagesToCheck = []string{"/communities", "/communities/101", "/communities/201", "/communities/201?game=111", "/communities/203?game=130&sort=popular", "/communities/102/related", "/new?community=201", "/feed", "/feed?scope=everyone", "/activity", "/activity?scope=following",
 	"/notifications", "/new", "/new?community=101", "/posts/p101", "/users/1000000005", "/users/1000000005/yeahs", "/users/1000000005/following",
 	"/users/1000000005/followers", "/users/1000000005/friends", "/users/1000000005/activity", "/settings", "/devices", "/about", "/topics?topic_tag=x"}
 
@@ -351,7 +351,7 @@ func TestCommunityBrowser(t *testing.T) {
 	}
 	// A console filter keeps only that console's games and drops the rooms.
 	sw := do(t, s, "GET", "/communities?console=Switch", nil).Body.String()
-	if !strings.Contains(sw, "Mario Kart 8 Deluxe") || strings.Contains(sw, "Fire Emblem Awakening") || strings.Contains(sw, "General rooms") {
+	if !strings.Contains(sw, "Mario Kart") || strings.Contains(sw, "Fire Emblem Awakening") || strings.Contains(sw, "General rooms") {
 		t.Error("console filter")
 	}
 	// Search.
@@ -383,5 +383,74 @@ func TestEveryAuthorShowsTheWholeName(t *testing.T) {
 	// Someone with no recorded name keeps the console name.
 	if body := do(t, s, "GET", "/posts/p101", nil, c).Body.String(); !strings.Contains(body, "Ren") {
 		t.Error("console name kept")
+	}
+}
+
+func TestFamilies(t *testing.T) {
+	s := newSite(t)
+	body := do(t, s, "GET", "/communities", nil).Body.String()
+	games := body[strings.Index(body, `id="games"`):]
+	// One tile for the franchise; its games have none of their own until searched for.
+	if !strings.Contains(games, `href="/communities/201"`) || !strings.Contains(games, "5 games") {
+		t.Error("Mario Kart family tile")
+	}
+	if strings.Contains(games, "Mario Kart DS") || strings.Contains(games, `href="/communities/103"`) {
+		t.Error("a game inside a family must not have its own tile in the browser")
+	}
+	if !strings.Contains(games, `href="/communities/101"`) {
+		t.Error("a game that stands alone keeps its tile")
+	}
+	// Search finds the single game and lands on the family with its chip chosen.
+	q := do(t, s, "GET", "/communities?q=kart+7", nil).Body.String()
+	if !strings.Contains(q, `href="/communities/201?game=111"`) || !strings.Contains(q, "Mario Kart · ") {
+		t.Errorf("search for one game: %s", q[strings.Index(q, `id="games"`):])
+	}
+	// The family page: a chip per game, All first, every game's posts together.
+	page := do(t, s, "GET", "/communities/201", nil).Body.String()
+	for _, want := range []string{`class="pills games"`, ">Mario Kart 7 · 3DS<", ">Mario Kart 8 · Wii U<", ">Mario Kart 8 Deluxe · Switch<", `aria-current="page">All<`,
+		"Rainbow Road", "StreetPass ghosts", "Mount Wario"} {
+		if !strings.Contains(page, want) {
+			t.Errorf("family page lacks %q", want)
+		}
+	}
+	// A chip shows only that game's posts.
+	c := signIn(t, s, "")
+	one := do(t, s, "GET", "/communities/201?game=111", nil, c).Body.String()
+	if !strings.Contains(one, "StreetPass ghosts") || strings.Contains(one, "Rainbow Road") || strings.Contains(one, "Mount Wario") {
+		t.Error("chip filter")
+	}
+	if !strings.Contains(one, `href="/new?community=111"`) {
+		t.Error("Post here follows the chosen game")
+	}
+	if !strings.Contains(do(t, s, "GET", "/communities/201", nil, c).Body.String(), `href="/new?community=201"`) {
+		t.Error("Post here on All leads to the game picker")
+	}
+	// A game's old address opens its family with the chip chosen.
+	w := do(t, s, "GET", "/communities/111", nil)
+	if w.Code != 302 || w.Header().Get("Location") != "/communities/201?game=111" {
+		t.Errorf("game address: %d %q", w.Code, w.Header().Get("Location"))
+	}
+	// A game that stands alone has no chip row.
+	if alone := do(t, s, "GET", "/communities/101", nil).Body.String(); strings.Contains(alone, `class="pills games"`) {
+		t.Error("no chips on a single game")
+	}
+	// The composer asks which game; a family itself takes no post.
+	if np := do(t, s, "GET", "/new?community=201", nil, c).Body.String(); !strings.Contains(np, `<select id="game"`) || !strings.Contains(np, "Choose a game") {
+		t.Error("composer game picker")
+	}
+	if np := do(t, s, "GET", "/new?community=111", nil, c).Body.String(); strings.Contains(np, `<select id="game"`) {
+		t.Error("a game takes the post directly")
+	}
+	form := url.Values{"community": {"201"}, "body": {"hello"}}
+	if w := do(t, s, "POST", "/new", form, c); w.Code != 422 || !strings.Contains(w.Body.String(), "Choose which game") {
+		t.Errorf("post to a family: %d", w.Code)
+	}
+	form.Set("community", "111")
+	if w := do(t, s, "POST", "/new", form, c); w.Code != 303 {
+		t.Errorf("post to a game of a family: %d", w.Code)
+	}
+	// Followed games sit under their family in Your communities.
+	if in := do(t, s, "GET", "/communities", nil, c).Body.String(); !strings.Contains(in, "Your communities") || !strings.Contains(in, `href="/communities/202?game=102"`) {
+		t.Error("a followed game opens its family")
 	}
 }

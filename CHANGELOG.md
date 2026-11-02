@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.0 — 2026-11-02
+
+- Franchise families. The communities browser lists one tile per franchise (Mario Kart, Splatoon, Zelda ...) instead of every game; a family page shows the posts of all its games with a chip per game ("All" plus the game and its console) and keeps the game's own community underneath. A game that stands alone behaves as before, with no chip row.
+- Search still finds single games and opens their family with that game's chip chosen; a game's old address redirects the same way. Console pills match a family when any of its games is on that console. Popular now counts a game for its family.
+- Following a family follows the family page; games followed on their own show under their family in Your communities.
+- Posting from a family page asks which game (the chosen chip is the default, "All" requires a choice); posts always belong to a game.
+
 ## v0.1.4 — 2026-11-02
 
 - Popular now appears only once at least three communities have posts from the last seven days.

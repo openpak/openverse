@@ -121,6 +121,8 @@ func New(cfg Config, st store.Store) (*Site, error) {
 			"dict":         dict,
 			"catName":      func(id string) string { return catName(tr, id) },
 			"commSub":      func(c store.Community) string { return commSub(tr, c) },
+			"chipLabel":    chipLabel,
+			"tileHref":     tileHref,
 			"actors":       func(n store.Notification) template.HTML { return actorsHTML(tr, n) },
 			"activityText": func(a ActivityRow) string { return activityText(tr, a.ActivityItem) },
 		}
@@ -584,7 +586,12 @@ func catName(tr i18n.T, id string) string {
 // some; a room says how many followers it has. A quiet game does not announce that it is quiet.
 func commSub(tr i18n.T, c store.Community) string {
 	var parts []string
-	if len(c.Consoles) > 0 {
+	if c.Family {
+		parts = append(parts, tr.N("n.games", len(c.Members)))
+	} else if c.ParentName != "" && c.ParentName != c.Name {
+		parts = append(parts, c.ParentName) // a game found by name or followed on its own says which family it is in
+	}
+	if len(c.Consoles) > 0 && !c.Family {
 		parts = append(parts, strings.Join(c.Consoles, " · "))
 	}
 	switch {
@@ -594,6 +601,23 @@ func commSub(tr i18n.T, c store.Community) string {
 		parts = append(parts, tr.N("n.followers", c.Followers))
 	}
 	return strings.Join(parts, " · ")
+}
+
+// chipLabel is a game's chip on its family page: the game and where it is played.
+func chipLabel(c store.Community) string {
+	if len(c.Consoles) == 0 {
+		return c.Name
+	}
+	return c.Name + " \u00b7 " + strings.Join(c.Consoles, ", ")
+}
+
+// tileHref is where a community tile leads. A game under a family opens the family page with its chip
+// chosen when the tile is a link to a community page; the composer takes the game's own id.
+func tileHref(link string, c store.Community) string {
+	if c.Parent != "" && strings.HasPrefix(link, "/communities/") {
+		return "/communities/" + url.PathEscape(c.Parent) + "?game=" + url.QueryEscape(c.ID)
+	}
+	return fmt.Sprintf(link, c.ID)
 }
 
 // activityText is the sentence after the person's name for an activity post. A category this build

@@ -64,7 +64,7 @@
 {{else}}{{template "empty" (dict "Icon" "pulse" "Title" (t "activity.empty_h") "Text" (t "activity.empty_p"))}}{{end}}{{end}}
 
 {{define "tiles"}}<ul class="tiles com-grid{{if .Small}} rooms{{end}}">
-{{$link := .Link}}{{range .Items}}<li>{{template "community-tile" (dict "C" . "Href" (printf $link .ID) "Sub" (commSub .))}}</li>
+{{$link := .Link}}{{range .Items}}<li>{{template "community-tile" (dict "C" . "Href" (tileHref $link .) "Sub" (commSub .))}}</li>
 {{end}}</ul>{{end}}
 
 {{define "browse"}}

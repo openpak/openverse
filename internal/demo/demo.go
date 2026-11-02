@@ -97,6 +97,7 @@ func (s *Store) seed() {
 	com("112", "Drawing and Art", "Show what you drew. 320 by 120 pixels of pure imagination.", 2760, 4410)
 	com("113", "Announcements", "News from the OpenPak team.", 6020, 77)
 	com("114", "Help and Questions", "Ask how things work. Friendly answers only.", 1330, 802)
+	s.families(com)
 
 	ago := func(h float64) time.Time { return s.now().Add(-time.Duration(h * float64(time.Hour))) }
 	add := func(com, who, body string, h float64, yeahs, replies int, opts ...string) string {
@@ -127,6 +128,9 @@ func (s *Store) seed() {
 	add("112", "1000000031", "Little robot, big dreams.", 3, 38, 1, "paint")
 	add("103", "1000000058", "New personal best on Rainbow Road, 1:52.4. The ghost upload worked first try.", 2.2, 12, 0)
 	add("105", "1000000012", "Found the hidden shrine near the old fort. I won't say where, but it involves a very patient chicken.", 1.4, 22, 1, "spoiler")
+	add("115", "1000000058", "Wii U 8 still has the best Mount Wario. Anyone up for a lobby tonight?", 6, 7, 0)
+	add("111", "1000000012", "Mario Kart 7 StreetPass ghosts are still my favourite way to race.", 9, 11, 1)
+	add("118", "1000000005", "Splatoon 2 salmon run rotation has a new weapon set, who is in?", 12, 15, 0)
 	add("102", Me, "Hi everyone, first post here. Looking for a Splatfest team to join this weekend.", 0.6, 5, 1)
 
 	reply := func(parent, who, body string, h float64) {
@@ -261,7 +265,8 @@ func (s *Store) Community(_ context.Context, viewer, id string) (store.Community
 func (s *Store) CommunityPosts(_ context.Context, viewer, id string, popular bool, p store.Page) ([]store.Post, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.topLevel(func(x store.Post) bool { return x.Community.ID == id }, viewer, popular, p), nil
+	ids := s.memberIDs(id)
+	return s.topLevel(func(x store.Post) bool { return ids[x.Community.ID] }, viewer, popular, p), nil
 }
 func (s *Store) FollowCommunity(_ context.Context, _, id string, follow bool) (int, error) {
 	s.mu.Lock()
@@ -334,6 +339,9 @@ func (s *Store) CreatePost(_ context.Context, viewer, community string, n store.
 	defer s.mu.Unlock()
 	if s.com(community).Name == "" {
 		return store.Post{}, store.ErrNotFound
+	}
+	if len(s.memberIDs(community)) > 1 {
+		return store.Post{}, store.ErrForbidden // a family has no posts of its own
 	}
 	if strings.Contains(strings.ToLower(n.Body), "badword") {
 		return store.Post{}, store.ErrRejected

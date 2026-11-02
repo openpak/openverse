@@ -80,7 +80,7 @@ const browseStep = 30
 var consoleOrder = []string{"Switch", "Wii U", "3DS", "Wii", "DS", "PS3", "Xbox 360", "Xbox", "PS2", "PSP", "Vita"}
 
 func (s *Site) browse(r *http.Request, base, link string, top bool) (browseData, error) {
-	list, total, err := s.store.Communities(r.Context(), store.Page{Limit: 600})
+	list, _, err := s.store.Communities(r.Context(), store.Page{Limit: 600})
 	if err != nil {
 		return browseData{}, err
 	}
@@ -88,7 +88,7 @@ func (s *Site) browse(r *http.Request, base, link string, top bool) (browseData,
 	if utf8.RuneCountInString(q) > 60 {
 		q = string([]rune(q)[:60])
 	}
-	d := browseData{Base: base, Link: link, Query: q, Total: total, Welcome: s.meView(r) == nil, Filtering: false}
+	d := browseData{Base: base, Link: link, Query: q, Welcome: s.meView(r) == nil, Filtering: false}
 	have := map[string]bool{}
 	for _, c := range list {
 		for _, k := range c.Consoles {
@@ -118,12 +118,36 @@ func (s *Site) browse(r *http.Request, base, link string, top bool) (browseData,
 	match := func(c store.Community) bool {
 		return q == "" || strings.Contains(strings.ToLower(c.Name), strings.ToLower(q))
 	}
+	// One tile per franchise and per game that stands alone. A game inside a family has no tile of its
+	// own until it is searched for: then it is found by name and opens its family with its chip chosen.
 	var games []store.Community
+	rooms, tiles := 0, 0
+	for _, c := range list {
+		if c.Parent == "" {
+			if c.General {
+				rooms++
+			} else {
+				tiles++
+			}
+		}
+	}
+	d.Total = rooms + tiles
+	fams := map[string]store.Community{}
+	for _, c := range list {
+		if c.Family {
+			fams[c.ID] = c
+		}
+	}
 	for _, c := range list {
 		switch {
 		case c.General:
 			if d.Console == "" && match(c) {
 				d.Rooms = append(d.Rooms, c)
+			}
+		case c.Parent != "":
+			// found by its own name, unless its family's name already brought the family up
+			if q != "" && match(c) && !match(fams[c.Parent]) && (d.Console == "" || hasConsole(c, d.Console)) {
+				games = append(games, c)
 			}
 		case match(c) && (d.Console == "" || hasConsole(c, d.Console)):
 			games = append(games, c)
@@ -157,15 +181,37 @@ func (s *Site) browse(r *http.Request, base, link string, top bool) (browseData,
 		}
 		if me := s.meView(r); me != nil {
 			if v := s.access(r.Context(), *me); len(v.FollowedCommunities) > 0 {
-				for _, c := range list {
-					if v.FollowedCommunities[c.ID] {
-						d.Yours = append(d.Yours, c)
-					}
-				}
+				d.Yours = yoursUnderFamilies(list, v.FollowedCommunities)
 			}
 		}
 	}
 	return d, nil
+}
+
+// yoursUnderFamilies lists what a person follows with each followed game right after its family, so
+// the games they followed before families existed still show up, under the franchise they belong to.
+func yoursUnderFamilies(list []store.Community, followed map[string]bool) []store.Community {
+	var out []store.Community
+	done := map[string]bool{}
+	for _, c := range list {
+		key := c.ID
+		if c.Parent != "" {
+			key = c.Parent
+		}
+		if done[key] {
+			continue
+		}
+		var group []store.Community
+		for _, x := range list {
+			if (x.ID == key || x.Parent == key) && followed[x.ID] {
+				group = append(group, x)
+			}
+		}
+		done[key] = true
+		sort.SliceStable(group, func(i, j int) bool { return group[i].Family && !group[j].Family })
+		out = append(out, group...)
+	}
+	return out
 }
 
 func hasConsole(c store.Community, k string) bool {
@@ -188,12 +234,15 @@ func (s *Site) communities(w http.ResponseWriter, r *http.Request) {
 
 type communityData struct {
 	store.Community
-	Items    []PostView
-	Popular  bool
-	CanPost  bool
-	Pager    Pager
-	Signed   bool
-	ReadOnly bool
+	Items                 []PostView
+	Popular               bool
+	CanPost               bool
+	Pager                 Pager
+	Signed                bool
+	ReadOnly              bool
+	Game                  string // the chosen game chip of a family, "" for All
+	PostTo                string // where Post here leads: the chosen game, or the family when none is chosen yet
+	RecentURL, PopularURL string // the two sort links, keeping the chosen game
 }
 
 func (s *Site) community(w http.ResponseWriter, r *http.Request) {
@@ -209,22 +258,57 @@ func (s *Site) community(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	popular := r.URL.Query().Get("sort") == "popular"
+	// A game that sits under a family has no page of its own: its family's page opens with its chip chosen.
+	if com.Parent != "" {
+		to := "/communities/" + url.PathEscape(com.Parent) + "?game=" + url.QueryEscape(id)
+		if popular {
+			to += "&sort=popular"
+		}
+		http.Redirect(w, r, to, http.StatusFound)
+		return
+	}
+	game := ""
+	feed := id
+	if com.Family {
+		g := r.URL.Query().Get("game")
+		for _, m := range com.Members {
+			if m.ID == g {
+				game, feed = g, g
+			}
+		}
+	}
 	page := pageParam(r)
-	posts, err := s.store.CommunityPosts(r.Context(), viewer, id, popular, pageFor(page))
+	posts, err := s.store.CommunityPosts(r.Context(), viewer, feed, popular, pageFor(page))
 	if err != nil {
 		s.fail(w, r, err)
 		return
 	}
-	base := "/communities/" + url.PathEscape(id)
+	root := "/communities/" + url.PathEscape(id)
+	q := url.Values{}
+	if game != "" {
+		q.Set("game", game)
+	}
+	recent := root
+	if len(q) > 0 {
+		recent += "?" + q.Encode()
+	}
+	q.Set("sort", "popular")
+	pop := root + "?" + q.Encode()
+	base := recent
 	if popular {
-		base += "?sort=popular"
+		base = pop
 	}
 	ro := s.readOnly(r, me)
-	if subs, err := s.store.SubCommunities(r.Context(), viewer, id); err == nil && len(subs) > 0 {
-		com.HasRelated = true
+	if !com.Family {
+		if subs, err := s.store.SubCommunities(r.Context(), viewer, id); err == nil && len(subs) > 0 {
+			com.HasRelated = true
+		}
 	}
 	d := communityData{Community: com, Items: postViews(posts, me, ro, false, r.URL.RequestURI()), Popular: popular, Signed: me != nil,
-		CanPost: com.Open && !ro, ReadOnly: ro, Pager: pager(page, len(posts) == pageSize, base)}
+		CanPost: com.Open && !ro, ReadOnly: ro, Pager: pager(page, len(posts) == pageSize, base), Game: game, PostTo: id, RecentURL: recent, PopularURL: pop}
+	if game != "" {
+		d.PostTo = game
+	}
 	s.render(w, r, http.StatusOK, "community", com.Name, d)
 }
 
@@ -376,6 +460,7 @@ type composeData struct {
 	Body      string
 	Spoiler   bool
 	Max       int
+	Picked    string // the game chosen on a family's composer
 }
 
 func (s *Site) compose(w http.ResponseWriter, r *http.Request) {
@@ -439,6 +524,15 @@ func (s *Site) createPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	n, msg := s.readPost(r)
+	if com.Family {
+		// A family has no posts of its own: it is a page over its games, so a game must be chosen.
+		if msg == "" {
+			msg = s.tr(r).Str("compose.pick_game_err")
+		}
+		d := composeData{Community: &com, Error: msg, Body: n.Body, Spoiler: n.Spoiler, Max: bodyMax}
+		s.renderKey(w, r, http.StatusUnprocessableEntity, "compose", "nav.newpost", d)
+		return
+	}
 	if msg == "" {
 		var p store.Post
 		if p, err = s.store.CreatePost(r.Context(), me.ID, id, n); err == nil {

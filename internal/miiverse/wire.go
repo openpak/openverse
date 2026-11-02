@@ -124,6 +124,9 @@ func (w wireCommunity) toStore() store.Community {
 		Icon: mediaKey(w.Icons.S128), Banner: mediaKey(w.Header), Open: w.Perm.Open}
 	c.Consoles = consolesOf(w.Description, w.Platform)
 	c.General = len(c.Consoles) == 0
+	if w.ParentID != nil {
+		c.Parent = *w.ParentID
+	}
 	return c
 }
 

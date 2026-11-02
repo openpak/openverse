@@ -9,7 +9,15 @@
 <div class="card empty-state">{{template "icon" "lock"}}<h2>{{t "compose.off_h"}}</h2><p>{{t "compose.off_p"}}</p><a class="btn" href="/communities/{{.Data.Community.ID}}">{{tf "post.back_to" .Data.Community.Name}}</a></div>
 {{else}}
 <form method="post" action="/new" class="card composer" data-composer>
+  {{if .Data.Community.Family}}
+  <label class="game-label" for="game">{{t "compose.game"}}</label>
+  <select id="game" name="community" class="game-pick" required>
+    <option value="" selected disabled>{{t "compose.pick_game"}}</option>
+    {{range .Data.Community.Members}}<option value="{{.ID}}">{{chipLabel .}}</option>{{end}}
+  </select>
+  {{else}}
   <input type="hidden" name="community" value="{{.Data.Community.ID}}">
+  {{end}}
   <input type="hidden" name="kind" value="text" data-kind>
   <input type="hidden" name="painting" value="" data-painting>
   {{if .Data.Error}}<p class="notice bad" role="alert">{{.Data.Error}}</p>{{end}}
