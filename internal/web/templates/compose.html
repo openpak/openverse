@@ -46,9 +46,11 @@
 {{if .Data.ReadOnly}}
 <div class="card empty-state">{{template "icon" "lock"}}<h2>{{t "compose.off_h"}}</h2><p>{{t "compose.off_p"}}</p></div>
 {{else if .Data.Choices}}
-<ul class="tiles com-grid">
+<div class="com-filter js-only"><label class="sr" for="com-find">{{t "communities.filter"}}</label><input id="com-find" type="search" class="field" placeholder="{{t "communities.filter"}}" autocomplete="off" data-filter></div>
+<ul class="tiles com-grid" data-filterable>
 {{range .Data.Choices}}<li>{{template "community-tile" (dict "C" . "Href" (printf "/new?community=%s" .ID) "Sub" (t "community.post_here"))}}</li>
 {{end}}</ul>
+<p class="muted com-nomatch" data-nomatch hidden>{{t "communities.nomatch"}}</p>
 {{else}}{{template "empty" (dict "Icon" "grid" "Title" (t "communities.empty_h") "Text" (t "compose.none_p"))}}{{end}}
 {{end}}
 {{template "foot" .}}{{end}}

@@ -199,9 +199,11 @@ func New(cfg Config, st store.Store) (*Site, error) {
 	s.redirects()
 	if s.legacy != nil {
 		// Moderation is still the Juxtaposition UI's: /admin and the sign-in it uses go to it unchanged.
-		s.mux.Handle("/admin", s.legacy)
-		s.mux.Handle("/admin/{rest...}", s.legacy)
-		s.mux.Handle("/login/callback", s.legacy)
+		for _, m := range []string{"GET", "POST", "PUT", "PATCH", "DELETE"} {
+			s.mux.Handle(m+" /admin", s.legacy)
+			s.mux.Handle(m+" /admin/{rest...}", s.legacy)
+		}
+		s.mux.Handle("GET /login/callback", s.legacy)
 	}
 	return s, nil
 }

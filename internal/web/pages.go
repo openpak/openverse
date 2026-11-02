@@ -62,7 +62,7 @@ type communitiesData struct {
 }
 
 func (s *Site) communities(w http.ResponseWriter, r *http.Request) {
-	list, total, err := s.store.Communities(r.Context(), store.Page{Limit: 120})
+	list, total, err := s.store.Communities(r.Context(), store.Page{Limit: 600})
 	if err != nil {
 		s.fail(w, r, err)
 		return
@@ -276,7 +276,7 @@ func (s *Site) compose(w http.ResponseWriter, r *http.Request) {
 		}
 		d.Community = &com
 	} else {
-		list, _, err := s.store.Communities(r.Context(), store.Page{Limit: 120})
+		list, _, err := s.store.Communities(r.Context(), store.Page{Limit: 600})
 		if err != nil {
 			s.fail(w, r, err)
 			return

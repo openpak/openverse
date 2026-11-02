@@ -71,17 +71,48 @@ func (c *Client) UnreadNotifications(ctx context.Context, viewer string) (int, e
 
 // ---- communities ----------------------------------------------------------------------------
 
-// Communities: GET /communities?category=listed.
+// Communities: GET /communities?category=listed. The list has no post counts; they come from each
+// community's /stats, read in the background and cached (see counts.go), so a tile shows its
+// posts as soon as the first sweep has finished.
 func (c *Client) Communities(ctx context.Context, p store.Page) ([]store.Community, int, error) {
-	var out wireList[wireCommunity]
-	if err := c.do(ctx, http.MethodGet, "/communities"+q(p, url.Values{"category": {"listed"}}), "", nil, &out); err != nil {
-		return nil, 0, err
+	// The API answers at most 90 at a time, so a longer window is read in pieces.
+	const chunk = 90
+	want := p.Limit
+	if want <= 0 {
+		want = chunk
 	}
-	list := make([]store.Community, 0, len(out.Items))
-	for _, w := range out.Items {
-		list = append(list, w.toStore())
+	var items []wireCommunity
+	total := 0
+	for off := p.Offset; len(items) < want; {
+		n := want - len(items)
+		if n > chunk {
+			n = chunk
+		}
+		var out wireList[wireCommunity]
+		if err := c.do(ctx, http.MethodGet, "/communities"+q(store.Page{Limit: n, Offset: off}, url.Values{"category": {"listed"}}), "", nil, &out); err != nil {
+			return nil, 0, err
+		}
+		total = out.Total
+		items = append(items, out.Items...)
+		off += len(out.Items)
+		if len(out.Items) < n || off >= total {
+			break
+		}
 	}
-	return list, out.Total, nil
+	ids := make([]string, 0, len(items))
+	for _, w := range items {
+		ids = append(ids, w.ID)
+	}
+	have := c.postCounts(ctx, ids)
+	list := make([]store.Community, 0, len(items))
+	for _, w := range items {
+		com := w.toStore()
+		if n, ok := have[w.ID]; ok {
+			com.Posts = n
+		}
+		list = append(list, com)
+	}
+	return list, total, nil
 }
 
 // Community: GET /communities/{id} (+ /stats for the post count, + sub-communities for "related").

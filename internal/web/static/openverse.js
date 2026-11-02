@@ -68,6 +68,21 @@
     else { window.prompt(b.getAttribute('data-prompt') || 'Copy this link', url); }
   });
 
+  // Community finder: filters the tiles as you type.
+  var find = document.querySelector('[data-filter]');
+  if (find) {
+    var grid = document.querySelector('[data-filterable]'), none = document.querySelector('[data-nomatch]');
+    find.addEventListener('input', function () {
+      var q = find.value.trim().toLowerCase(), shown = 0;
+      grid.querySelectorAll('li').forEach(function (li) {
+        var hit = !q || li.textContent.toLowerCase().indexOf(q) !== -1;
+        li.hidden = !hit;
+        if (hit) { shown++; }
+      });
+      if (none) { none.hidden = shown > 0; }
+    });
+  }
+
   // Composer: character counter, text/drawing tabs, the pad.
   var W = 320, H = 120;
 

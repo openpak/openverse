@@ -287,3 +287,48 @@ func TestOEmbedAndTopic(t *testing.T) {
 		t.Errorf("topics without a tag: %d", w.Code)
 	}
 }
+
+func TestAdminGoesToTheJuxtapositionUI(t *testing.T) {
+	var seen []string
+	up := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		seen = append(seen, r.Method+" "+r.URL.RequestURI()+" host="+r.Host)
+		w.Header().Set("Content-Security-Policy", "upstream-policy")
+		_, _ = w.Write([]byte("admin ok"))
+	}))
+	defer up.Close()
+	cfg := Config{Demo: true, SessionKey: strings.Repeat("k", 32), PublicURL: "https://verse.example", OpenPakURL: "https://openpak.org", LegacyURL: up.URL}
+	s, err := New(cfg, demo.New())
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := httptest.NewRequest("GET", "/admin/posts?x=1", nil)
+	r.Host = "verse.example"
+	w := httptest.NewRecorder()
+	s.ServeHTTP(w, r)
+	if w.Body.String() != "admin ok" || len(seen) != 1 || seen[0] != "GET /admin/posts?x=1 host=verse.example" {
+		t.Errorf("admin: %q %v", w.Body.String(), seen)
+	}
+	if got := w.Header().Values("Content-Security-Policy"); len(got) != 1 || got[0] != "upstream-policy" {
+		t.Errorf("the admin pages keep their own policy: %v", got)
+	}
+	// Sign-in for the admin pages goes to the UI; an ordinary old /login goes to ours.
+	w = httptest.NewRecorder()
+	s.ServeHTTP(w, httptest.NewRequest("GET", "/login?redirect=%2Fadmin%2Fposts", nil))
+	if w.Body.String() != "admin ok" {
+		t.Error("/login?redirect=/admin must reach the UI")
+	}
+	w = httptest.NewRecorder()
+	s.ServeHTTP(w, httptest.NewRequest("GET", "/login", nil))
+	if w.Header().Get("Location") != "/auth/login" {
+		t.Errorf("plain /login: %q", w.Header().Get("Location"))
+	}
+	w = httptest.NewRecorder()
+	s.ServeHTTP(w, httptest.NewRequest("GET", "/login/callback?code=1", nil))
+	if w.Body.String() != "admin ok" {
+		t.Error("/login/callback is the UI's")
+	}
+	// With no legacy UI configured there is no /admin at all.
+	if w := do(t, newSite(t), "GET", "/admin", nil); w.Code != 404 {
+		t.Errorf("no legacy: %d", w.Code)
+	}
+}

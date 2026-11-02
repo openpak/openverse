@@ -121,3 +121,41 @@ func TestMediaKey(t *testing.T) {
 		}
 	}
 }
+
+func TestCommunitiesAreReadNinetyAtATime(t *testing.T) {
+	var asked []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/stats") {
+			_, _ = w.Write([]byte(`{"totalPosts":7}`))
+			return
+		}
+		lim, off := r.URL.Query().Get("limit"), r.URL.Query().Get("offset")
+		asked = append(asked, lim+"@"+off)
+		n := 90
+		if off == "270" {
+			n = 30
+		}
+		var items []string
+		for i := 0; i < n; i++ {
+			items = append(items, `{"olive_community_id":"c`+off+"_"+strings.Repeat("x", i%3)+string(rune('a'+i%26))+`","name":"G","followerCount":2,"iconImagePaths":{"128":"https://api/cdn/icons/1/128.png"}}`)
+		}
+		_, _ = w.Write([]byte(`{"total":300,"items":[` + strings.Join(items, ",") + `]}`))
+	}))
+	defer srv.Close()
+	c := New(srv.URL, "k")
+	list, total, err := c.Communities(context.Background(), store.Page{Limit: 600})
+	if err != nil || total != 300 {
+		t.Fatalf("%v %d", err, total)
+	}
+	if strings.Join(asked, " ") != "90@ 90@90 90@180 90@270" {
+		t.Errorf("requests: %v", asked)
+	}
+	if len(list) != 300 {
+		t.Errorf("got %d communities", len(list))
+	}
+	for _, com := range list {
+		if com.Posts != 7 {
+			t.Fatalf("post count not filled in: %+v", com)
+		}
+	}
+}

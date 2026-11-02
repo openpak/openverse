@@ -294,3 +294,8 @@ fieldset.plain[disabled] { opacity: .6; }
 .post-topic a { color: inherit; text-decoration: none; }
 .post-tools form { display: inline-block; margin-right: .5rem; }
 .lang-note { font-size: .85rem; }
+.com-filter { margin: 0 0 1rem; max-width: 24rem; }
+.com-filter .field { width: 100%; min-height: 44px; font: inherit; font-size: max(1rem, 16px); color: var(--ink); background: var(--raised); border: 1px solid var(--line-2); border-radius: 12px; padding: .5rem .9rem; }
+.com-filter .field:focus { outline: none; border-color: var(--cursor); box-shadow: 0 0 0 3px color-mix(in srgb, var(--cursor) 30%, transparent); }
+.com-grid li[hidden] { display: none; }
+.com-nomatch { margin: 1rem 0; }
