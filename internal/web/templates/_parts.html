@@ -77,7 +77,7 @@
     {{if .Console}}<input type="hidden" name="console" value="{{.Console}}">{{end}}
     <button type="submit" class="btn">{{t "communities.search"}}</button>
   </form>
-  {{if .Consoles}}<nav class="pills" aria-label="{{t "communities.consoles"}}">
+  {{if .Consoles}}<nav class="pills" aria-label="{{t "communities.consoles"}}" data-pillselect>
     <a href="{{.Base}}{{if .Query}}?q={{.Query | urlq}}{{end}}#games" {{if not .Console}}aria-current="page"{{end}}>{{t "communities.all"}}</a>
     {{$b := .Base}}{{$q := .Query}}{{$cur := .Console}}{{range .Consoles}}<a href="{{$b}}?console={{. | urlq}}{{if $q}}&amp;q={{$q | urlq}}{{end}}#games" {{if eq . $cur}}aria-current="page"{{end}}>{{.}}</a>{{end}}
   </nav>{{end}}

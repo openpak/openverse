@@ -28,7 +28,7 @@
 <section id="replies" aria-labelledby="replies-h">
   <div class="section-row">
     <h2 id="replies-h">{{tn "n.replies" .Data.Post.Replies}}</h2>
-    {{if gt .Data.Post.Replies 1}}<nav class="seg small" aria-label="{{t "post.order"}}">
+    {{if gt .Data.Post.Replies 1}}<nav class="seg small" aria-label="{{t "post.order"}}" data-pillselect>
       <a href="/posts/{{.Data.Post.ID}}#replies" {{if not .Data.Newest}}aria-current="page"{{end}}>{{t "post.oldest"}}</a>
       <a href="/posts/{{.Data.Post.ID}}?sort=newest#replies" {{if .Data.Newest}}aria-current="page"{{end}}>{{t "post.newest"}}</a>
     </nav>{{end}}

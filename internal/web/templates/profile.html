@@ -18,7 +18,7 @@
     {{end}}
   </div>
 </section>
-<nav class="seg tabs-seg" aria-label="{{t "profile.sections"}}">
+<nav class="seg tabs-seg" aria-label="{{t "profile.sections"}}" data-pillselect>
   <a href="/users/{{.Data.ID}}" {{if eq .Data.Tab "posts"}}aria-current="page"{{end}}>{{t "profile.posts"}}</a>
   <a href="/users/{{.Data.ID}}/yeahs" {{if eq .Data.Tab "yeahs"}}aria-current="page"{{end}}>{{t "profile.yeahs"}}</a>
   <a href="/users/{{.Data.ID}}/following" {{if eq .Data.Tab "following"}}aria-current="page"{{end}}>{{t "profile.following"}}</a>

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.2 — 2026-11-04
+
+- Phones: tab and filter rows that do not fit on one line (a family's game chips, the console filter, profile sections, feed, activity and sort tabs) become one native dropdown instead of scrolling sideways. Pills stay on desktop and without JavaScript. New `static/pillselect.js`.
+
 ## v0.2.1 — 2026-11-02
 
 - Phones: a family's game chips sit in one row that scrolls sideways instead of stacking into a wall (Pokémon has 13 games), and the chosen game scrolls into view.

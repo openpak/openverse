@@ -3,7 +3,7 @@
   <h1>{{t "nav.feed"}}</h1>
   <p class="lede">{{if eq .Data.Scope "following"}}{{t "feed.lede_following"}}{{else}}{{t "feed.lede_everyone"}}{{end}}</p>
 </div>
-<nav class="seg" aria-label="{{t "nav.feed"}}">
+<nav class="seg" aria-label="{{t "nav.feed"}}" data-pillselect>
   <a href="/feed" {{if eq .Data.Scope "following"}}aria-current="page"{{end}}>{{t "feed.following"}}</a>
   <a href="/feed?scope=everyone" {{if eq .Data.Scope "everyone"}}aria-current="page"{{end}}>{{t "feed.everyone"}}</a>
 </nav>

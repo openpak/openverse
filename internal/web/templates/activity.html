@@ -4,7 +4,7 @@
   <p class="lede">{{t "activity.lede"}}</p>
 </div>
 <div class="seg-row">
-<nav class="seg" aria-label="{{t "nav.activity"}}">
+<nav class="seg" aria-label="{{t "nav.activity"}}" data-pillselect>
   <a href="/activity" {{if eq .Data.Scope "everyone"}}aria-current="page"{{end}}>{{t "feed.everyone"}}</a>
   <a href="/activity?scope=following" {{if eq .Data.Scope "following"}}aria-current="page"{{end}}>{{t "feed.following"}}</a>
 </nav>
