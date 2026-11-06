@@ -13,7 +13,7 @@ import (
 
 const key = "openverse:names"
 
-// Backend is the hash in Redis (or memory).
+// Backend is the names table in Postgres (or memory).
 type Backend interface {
 	HSet(ctx context.Context, key, field, value string) error
 	HMGet(ctx context.Context, key string, fields []string) (map[string]string, error)

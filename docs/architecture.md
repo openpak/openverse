@@ -58,7 +58,7 @@ The decision is the miiverse-api's, through the same parental lookup it makes fo
 
 ## Linked devices
 
-The page uses the miiverse-api `deviceLinks` routes through the bridge (`list`, `revoke`) and the Redis link codes the Lite service writes (`verse-lite:code:<CODE>`), see `internal/linkcodes`. Every form carries a token derived from the session; checking a code is limited to ten tries a minute per account.
+The page uses the miiverse-api `deviceLinks` routes through the bridge (`list`, `revoke`) and the Postgres link codes the Lite service writes (`verse-lite:code:<CODE>`), see `internal/linkcodes`. Every form carries a token derived from the session; checking a code is limited to ten tries a minute per account.
 
 ## Sign-in and session
 

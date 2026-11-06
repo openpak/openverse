@@ -1,9 +1,10 @@
-# Multi-stage, cross-compiled; standard library only. Templates, the stylesheet and the font are
+# Multi-stage, cross-compiled; one Postgres driver (pgx), otherwise standard library. Templates, the stylesheet and the font are
 # embedded in the binary.
 FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS build
 ARG TARGETOS TARGETARCH
 WORKDIR /src
-COPY go.mod ./
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /out/openverse ./cmd/openverse
 

@@ -31,7 +31,7 @@ Every call goes to `{OPENVERSE_API_URL}/internal/v1/web/api/v1/...` (the web bri
 | Spoiler mark | `POST /posts/{id}/edit/spoiler` `{is_spoiler}` | own posts |
 | Remove an activity post | `DELETE /activity/{id}` | |
 | Data download | `POST /self/export` | |
-| Linked devices | `POST /device-links/list`, `POST /device-links/revoke` | the codes themselves are in Redis, `internal/linkcodes` |
+| Linked devices | `POST /device-links/list`, `POST /device-links/revoke` | the codes themselves are in Postgres (`ui_kv`), `internal/linkcodes`, `internal/pgkv` |
 
 Never used: `/admin/*` (the bridge refuses it; moderation stays in the Juxtaposition UI, reached through `/admin` here), console routes, onboarding.
 

@@ -1,6 +1,6 @@
 // Package linkcodes is the web half of linking a console or old browser to an account. A device
 // asks Juxtaposition's Lite service for a short code and shows it; the person types it on the
-// Linked devices page and confirms. The code lives in Redis under the key shape the Lite service
+// Linked devices page and confirms. The code lives in Postgres (table ui_kv) under the key shape the Lite service
 // writes (apps/juxtaposition-ui/src/lite/linkCodes.ts), so this package and that one share it:
 //
 //	verse-lite:code:<CODE>  ->  {"deviceClass","secretHash","ip","createdAt","accountId"}   (10 minutes)
@@ -24,7 +24,7 @@ const (
 	MaxActive = 12
 )
 
-// KV is the two Redis calls used.
+// KV is the two key-value calls used.
 type KV interface {
 	Get(ctx context.Context, key string) (string, bool, error)
 	Set(ctx context.Context, key, value string, ex int) error

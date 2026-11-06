@@ -22,6 +22,7 @@ import (
 
 	"github.com/openpak/openverse/internal/i18n"
 	"github.com/openpak/openverse/internal/linkcodes"
+	"github.com/openpak/openverse/internal/pgkv"
 	"github.com/openpak/openverse/internal/names"
 	"github.com/openpak/openverse/internal/store"
 )
@@ -58,17 +59,20 @@ type accessEntry struct {
 	at time.Time
 }
 
-// SetCodes sets where device link codes live (Redis in production, memory in tests and the demo).
+// SetCodes sets where device link codes live (Postgres in production, memory in tests and the demo).
 func (s *Site) SetCodes(kv linkcodes.KV) { s.codes = kv }
 
 // New builds the site. It does not touch the network.
 func New(cfg Config, st store.Store) (*Site, error) {
 	s := &Site{cfg: cfg, store: st, sso: &http.Client{Timeout: 10 * time.Second}, cdn: &http.Client{Timeout: 10 * time.Second},
 		cat: i18n.Load(), asset: strconv.FormatInt(time.Now().Unix(), 36), acc: map[string]accessEntry{}}
-	if cfg.RedisAddr != "" {
-		r := &linkcodes.Redis{Addr: cfg.RedisAddr, Password: cfg.RedisPass}
-		s.codes = r
-		s.names = names.New(r)
+	if cfg.DatabaseURL != "" {
+		kv, err := pgkv.Open(context.Background(), cfg.DatabaseURL)
+		if err != nil {
+			return nil, err
+		}
+		s.codes = kv
+		s.names = names.New(kv)
 	} else if cfg.Demo {
 		s.names = names.New(names.NewMemory())
 		mem := linkcodes.NewMemory()

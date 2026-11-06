@@ -17,8 +17,7 @@ type Config struct {
 	SSOSecret    string // SSO_CLIENT_OPENVERSE_SECRET
 	SessionKey   string // OPENVERSE_SESSION_KEY, 32+ characters, signs the cookies
 	ContactEmail string // OPENVERSE_CONTACT_EMAIL
-	RedisAddr    string // OPENVERSE_REDIS_ADDR, host:port of the Redis that holds the device link codes
-	RedisPass    string // OPENVERSE_REDIS_PASSWORD, optional
+	DatabaseURL  string // OPENVERSE_DATABASE_URL, the Postgres that holds the device link codes and the names book (the UI's database)
 	LegacyURL    string // OPENVERSE_LEGACY_URL, the Juxtaposition UI, which still serves /admin (moderation)
 	Demo         bool   // OPENVERSE_DEMO=1: fixture data and a sign-in without openpak.org. Never in production.
 }
@@ -35,8 +34,7 @@ func ConfigFromEnv(get func(string) string) (Config, error) {
 		SSOSecret:    get("SSO_CLIENT_OPENVERSE_SECRET"),
 		SessionKey:   get("OPENVERSE_SESSION_KEY"),
 		ContactEmail: or(get("OPENVERSE_CONTACT_EMAIL"), "contact@openpak.org"),
-		RedisAddr:    get("OPENVERSE_REDIS_ADDR"),
-		RedisPass:    get("OPENVERSE_REDIS_PASSWORD"),
+		DatabaseURL:  get("OPENVERSE_DATABASE_URL"),
 		LegacyURL:    strings.TrimRight(get("OPENVERSE_LEGACY_URL"), "/"),
 		Demo:         get("OPENVERSE_DEMO") == "1",
 	}
